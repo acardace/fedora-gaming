@@ -87,7 +87,7 @@ RUN dnf install -y \
 
 # Install system utilities
 RUN dnf install -y \
-        flatpak plasma-discover plasma-discover-flatpak plasma-discover-rpm-ostree \
+        flatpak plasma-discover plasma-discover-flatpak \
         btop htop git make neovim fish \
         NetworkManager-wifi NetworkManager-bluetooth \
         bluez blueman fastfetch \
@@ -107,7 +107,7 @@ RUN dnf install -y /tmp/*.rpm && \
     rm -f /tmp/*.rpm
 
 # Remove unnecessary packages for faster boot
-RUN dnf remove -y plymouth ModemManager cups && \
+RUN dnf remove -y plymouth ModemManager cups plasma-discover-packagekit && \
     dnf clean all
 
 # Copy system configuration files

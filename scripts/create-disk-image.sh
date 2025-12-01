@@ -21,21 +21,14 @@ if [[ ! -f "${CONFIG_FILE}" ]]; then
     exit 1
 fi
 
-# Check if image exists in rootful storage
-if ! sudo podman image exists "${IMAGE_NAME}:${IMAGE_TAG}"; then
-    echo "Image not found in rootful storage, checking rootless storage..."
-
-    # Check if image exists in rootless storage
-    if podman image exists "${IMAGE_NAME}:${IMAGE_TAG}"; then
-        echo "Found image in rootless storage, copying to rootful storage..."
-        podman save "${IMAGE_NAME}:${IMAGE_TAG}" | sudo podman load
-        echo "✓ Image copied to rootful storage"
-    else
-        echo "Error: Image ${IMAGE_NAME}:${IMAGE_TAG} not found in rootless or rootful storage"
-        exit 1
-    fi
+# Check if image exists in rootless storage
+if podman image exists "${IMAGE_NAME}:${IMAGE_TAG}"; then
+    echo "Found image in rootless storage, copying to rootful storage..."
+    podman save "${IMAGE_NAME}:${IMAGE_TAG}" | sudo podman load
+    echo "✓ Image copied to rootful storage"
 else
-    echo "✓ Image found in rootful storage"
+    echo "Error: Image ${IMAGE_NAME}:${IMAGE_TAG} not found in rootless or rootful storage"
+    exit 1
 fi
 
 sudo podman run \
