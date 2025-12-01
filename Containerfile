@@ -19,8 +19,9 @@ RUN mkdir -p /root/rpmbuild/{SOURCES,SPECS} && \
     spectool -g -R /root/rpmbuild/SPECS/umu-launcher.spec && \
     rpmbuild -bb /root/rpmbuild/SPECS/umu-launcher.spec
 
-# Main image
-FROM quay.io/fedora/fedora-bootc:43
+# Full gaming image based on minimal
+ARG MINIMAL_IMAGE=ghcr.io/acardace/fedora-gaming:minimal
+FROM ${MINIMAL_IMAGE}
 
 LABEL quay.expires-after=12w
 
@@ -87,8 +88,8 @@ RUN dnf install -y \
 
 # Install system utilities
 RUN dnf install -y \
-        flatpak plasma-discover plasma-discover-flatpak \
-        btop htop git make neovim fish \
+        flatpak plasma-discover plasma-discover-flatpak plasma-discover-rpm-ostree \
+        btop htop git make neovim \
         NetworkManager-wifi NetworkManager-bluetooth \
         bluez blueman fastfetch \
         glibc-langpack-en curl wget distrobox podman \
@@ -110,19 +111,7 @@ RUN dnf install -y /tmp/*.rpm && \
 RUN dnf remove -y plymouth ModemManager cups plasma-discover-packagekit && \
     dnf clean all
 
-# Copy system configuration files
-COPY rootfs/ /
-
-# Copy scripts
-COPY host-scripts/ /usr/local/bin/
-
-# Configure timezone, sudoers, SELinux, and enable SDDM
-RUN ln -sf ../usr/share/zoneinfo/Europe/Rome /etc/localtime && \
-    echo '%wheel ALL=(ALL) ALL' > /etc/sudoers.d/wheel && \
-    # Set fish as root's shell
-    usermod -s /usr/bin/fish root && \
-    # Required for Steam Big Picture mode
-    setsebool -P allow_execheap 1 && \
-    systemctl enable sddm && \
+# Enable systemd services
+RUN systemctl enable sddm && \
     systemctl preset-all && \
     systemctl --global preset-all

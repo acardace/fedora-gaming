@@ -2,14 +2,30 @@
 set -euo pipefail
 
 IMAGE_NAME="${IMAGE_NAME:-ghcr.io/acardace/fedora-gaming}"
-IMAGE_TAG="${IMAGE_TAG:-latest}"
+BUILD_MINIMAL="${BUILD_MINIMAL:-true}"
+BUILD_LATEST="${BUILD_LATEST:-true}"
 
-echo "Building bootc image: ${IMAGE_NAME}:${IMAGE_TAG}"
+# Build minimal image
+if [[ "${BUILD_MINIMAL}" == "true" ]]; then
+    echo "Building minimal image: ${IMAGE_NAME}:minimal"
+    podman build \
+        -f Containerfile.minimal \
+        -t "${IMAGE_NAME}:minimal" \
+        .
+    echo "✓ Minimal image built successfully: ${IMAGE_NAME}:minimal"
+fi
 
-podman build \
-    -f Containerfile \
-    -t "${IMAGE_NAME}:${IMAGE_TAG}" \
-    .
+# Build full image based on minimal
+if [[ "${BUILD_LATEST}" == "true" ]]; then
+    echo "Building full image: ${IMAGE_NAME}:latest"
+    podman build \
+        -f Containerfile \
+        --build-arg "MINIMAL_IMAGE=${IMAGE_NAME}:minimal" \
+        -t "${IMAGE_NAME}:latest" \
+        .
+    echo "✓ Full image built successfully: ${IMAGE_NAME}:latest"
+fi
 
-echo "✓ Image built successfully: ${IMAGE_NAME}:${IMAGE_TAG}"
-podman images "${IMAGE_NAME}:${IMAGE_TAG}"
+echo ""
+echo "Images built:"
+podman images "${IMAGE_NAME}"

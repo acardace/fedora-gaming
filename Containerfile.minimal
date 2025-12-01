@@ -1,0 +1,23 @@
+# Minimal bootc image for ISO installation
+# After install, run: bootc switch ghcr.io/acardace/fedora-gaming:latest
+FROM quay.io/fedora/fedora-bootc:43
+
+LABEL quay.expires-after=12w
+
+# Install fish shell (used as default shell)
+RUN dnf install -y fish && \
+    dnf clean all
+
+# Copy system configuration files
+COPY rootfs/ /
+
+# Copy scripts
+COPY host-scripts/ /usr/local/bin/
+
+# Configure timezone, sudoers, and SELinux
+RUN ln -sf ../usr/share/zoneinfo/Europe/Rome /etc/localtime && \
+    echo '%wheel ALL=(ALL) ALL' > /etc/sudoers.d/wheel && \
+    # Set fish as root's shell
+    usermod -s /usr/bin/fish root && \
+    # Required for Steam Big Picture mode
+    setsebool -P allow_execheap 1

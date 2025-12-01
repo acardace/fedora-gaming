@@ -2,7 +2,7 @@
 set -euo pipefail
 
 IMAGE_NAME="${IMAGE_NAME:-ghcr.io/acardace/fedora-gaming}"
-IMAGE_TAG="${IMAGE_TAG:-latest}"
+IMAGE_TAG="${IMAGE_TAG:-minimal}"
 OUTPUT_DIR="${OUTPUT_DIR:-./output}"
 CONFIG_FILE="${CONFIG_FILE:-./config.toml}"
 
