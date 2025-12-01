@@ -20,7 +20,6 @@ if [[ "${BUILD_LATEST}" == "true" ]]; then
     echo "Building full image: ${IMAGE_NAME}:latest"
     podman build \
         -f Containerfile \
-        --build-arg "MINIMAL_IMAGE=${IMAGE_NAME}:minimal" \
         -t "${IMAGE_NAME}:latest" \
         .
     echo "✓ Full image built successfully: ${IMAGE_NAME}:latest"
