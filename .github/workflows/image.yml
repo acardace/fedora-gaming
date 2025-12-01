@@ -67,17 +67,6 @@ jobs:
           layers: true
           oci: true
 
-      - name: Build full image
-        uses: redhat-actions/buildah-build@v2
-        with:
-          image: ${{ env.IMAGE_NAME }}
-          tags: latest ${{ github.sha }}
-          containerfiles: Containerfile
-          build-args: |
-            MINIMAL_IMAGE=localhost/${{ env.IMAGE_NAME }}:minimal
-          layers: true
-          oci: true
-
       - name: Login to GHCR
         uses: docker/login-action@v3
         if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
@@ -93,6 +82,16 @@ jobs:
           image: ${{ env.IMAGE_NAME }}
           registry: ${{ env.REGISTRY }}
           tags: minimal
+
+      - name: Build full image
+        uses: redhat-actions/buildah-build@v2
+        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          tags: latest ${{ github.sha }}
+          containerfiles: Containerfile
+          layers: true
+          oci: true
 
       - name: Push full image to GHCR
         uses: redhat-actions/push-to-registry@v2
