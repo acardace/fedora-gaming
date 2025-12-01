@@ -1,0 +1,39 @@
+# Development packages to install in the distrobox
+# Lines starting with # are comments and will be ignored
+# Empty lines are ignored
+
+# Basic development tools
+bat
+ripgrep
+fish
+buildah
+gh
+curl
+neovim
+git
+fzf
+stow
+fd-find
+clang-devel
+make
+jq
+yq
+podman-remote
+ffmpeg
+meld
+poppler-utils
+
+# Go development
+golang
+gopls
+
+# Rust development
+rust
+cargo
+rust-analyzer
+
+# Google Cloud CLI
+google-cloud-cli
+
+# Compatibility libraries
+libxcrypt-compat.x86_64

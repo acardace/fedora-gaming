@@ -1,0 +1,16 @@
+[Unit]
+Description=Restic Backup Timer
+Documentation=https://restic.readthedocs.io/
+
+[Timer]
+# Run daily at 12:30 PM
+OnCalendar=*-*-* 12:30:00
+
+# Run on boot if the last scheduled run was missed (e.g., system was off)
+Persistent=true
+
+# Randomize start time by up to 15 minutes to avoid load spikes
+RandomizedDelaySec=15min
+
+[Install]
+WantedBy=timers.target

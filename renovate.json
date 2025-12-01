@@ -1,0 +1,36 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["spec_files/.*\\.spec$"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)\\n%global tag (?<currentValue>.*)"
+      ],
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["spec_files/.*\\.spec$"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)\\n%global urllib3 (?<currentValue>.*)"
+      ],
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["Containerfile$"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)\\nARG \\w+_VERSION=(?<currentValue>.*)"
+      ],
+      "versioningTemplate": "semver"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchPackageNames": ["Open-Wine-Components/umu-launcher", "urllib3/urllib3", "Heroic-Games-Launcher/HeroicGamesLauncher"],
+      "automerge": false
+    }
+  ]
+}

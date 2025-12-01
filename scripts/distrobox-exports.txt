@@ -1,0 +1,20 @@
+# Binaries to export from distrobox to host
+# Format: /path/to/binary
+# Lines starting with # are comments and will be ignored
+# Empty lines are ignored
+
+# Go tools
+/usr/bin/go
+/usr/bin/gofmt
+/usr/bin/gopls
+
+# Rust tools
+/usr/bin/cargo
+/usr/bin/rustc
+/usr/bin/rustfmt
+/usr/bin/rust-analyzer
+
+# Google Cloud tools
+/usr/bin/gcloud
+/usr/bin/gsutil
+/usr/bin/bq

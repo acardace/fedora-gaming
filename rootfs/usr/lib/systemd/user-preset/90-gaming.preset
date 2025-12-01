@@ -1,0 +1,3 @@
+enable sunshine.service
+enable podman.socket
+enable ludusavi-backup.timer

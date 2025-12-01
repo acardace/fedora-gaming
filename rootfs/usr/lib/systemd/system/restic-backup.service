@@ -1,0 +1,22 @@
+[Unit]
+Description=Restic Backup Service
+Documentation=https://restic.readthedocs.io/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/restic/env
+ExecStart=/usr/local/bin/restic-backup.sh
+
+# Security hardening
+PrivateTmp=yes
+NoNewPrivileges=yes
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=restic-backup
+
+[Install]
+WantedBy=multi-user.target

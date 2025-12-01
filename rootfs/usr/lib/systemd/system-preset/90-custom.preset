@@ -1,0 +1,7 @@
+enable sddm.service
+enable libvirtd.service
+enable sshd.service
+enable bootloader-update.service
+disable restic-backup.timer
+disable gssproxy.service
+disable NetworkManager-wait-online.service

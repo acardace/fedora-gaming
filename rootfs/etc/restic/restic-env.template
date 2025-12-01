@@ -1,0 +1,10 @@
+# Restic environment configuration
+# This file should be copied to /etc/restic/env and customized
+
+# REQUIRED: Set your restic repository password
+# Choose a strong password and keep it safe - you'll need it to restore backups
+RESTIC_PASSWORD=your_secure_password_here
+
+# Optional: Additional restic configuration
+# RESTIC_COMPRESSION=auto
+# RESTIC_CACHE_DIR=/var/cache/restic
