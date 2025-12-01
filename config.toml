@@ -1,6 +1,5 @@
 [[customizations.user]]
 name = "root"
-shell = "/usr/bin/fish"
 
 [[customizations.user]]
 name = "acardace"

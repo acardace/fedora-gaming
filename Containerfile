@@ -119,6 +119,8 @@ COPY host-scripts/ /usr/local/bin/
 # Configure timezone, sudoers, SELinux, and enable SDDM
 RUN ln -sf ../usr/share/zoneinfo/Europe/Rome /etc/localtime && \
     echo '%wheel ALL=(ALL) ALL' > /etc/sudoers.d/wheel && \
+    # Set fish as root's shell
+    usermod -s /usr/bin/fish root && \
     # Required for Steam Big Picture mode
     setsebool -P allow_execheap 1 && \
     systemctl enable sddm && \

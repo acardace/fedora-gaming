@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-IMAGE_NAME="${IMAGE_NAME:-localhost/fedora-gaming}"
+IMAGE_NAME="${IMAGE_NAME:-ghcr.io/acardace/fedora-gaming}"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
 OUTPUT_DIR="${OUTPUT_DIR:-./output}"
 CONFIG_FILE="${CONFIG_FILE:-./config.toml}"
