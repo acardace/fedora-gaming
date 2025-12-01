@@ -22,13 +22,24 @@ if [[ ! -f "${CONFIG_FILE}" ]]; then
 fi
 
 # Check if image exists in rootless storage
-if podman image exists "${IMAGE_NAME}:${IMAGE_TAG}"; then
-    echo "Found image in rootless storage, copying to rootful storage..."
+if ! podman image exists "${IMAGE_NAME}:${IMAGE_TAG}"; then
+    echo "Error: Image ${IMAGE_NAME}:${IMAGE_TAG} not found in rootless storage"
+    exit 1
+fi
+
+# Get image SHA from rootless storage
+ROOTLESS_SHA=$(podman image inspect "${IMAGE_NAME}:${IMAGE_TAG}" --format '{{.Id}}' 2>/dev/null)
+
+# Get image SHA from rootful storage (if exists)
+ROOTFUL_SHA=$(sudo podman image inspect "${IMAGE_NAME}:${IMAGE_TAG}" --format '{{.Id}}' 2>/dev/null || echo "")
+
+# Only copy if SHAs don't match
+if [[ "${ROOTLESS_SHA}" != "${ROOTFUL_SHA}" ]]; then
+    echo "Image SHA mismatch, copying to rootful storage..."
     podman save "${IMAGE_NAME}:${IMAGE_TAG}" | sudo podman load
     echo "✓ Image copied to rootful storage"
 else
-    echo "Error: Image ${IMAGE_NAME}:${IMAGE_TAG} not found in rootless or rootful storage"
-    exit 1
+    echo "✓ Image already up to date in rootful storage"
 fi
 
 sudo podman run \

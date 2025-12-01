@@ -1,3 +1,0 @@
-[install]
-# The installed system will track this image for updates
-image = "ghcr.io/acardace/fedora-gaming:latest"
