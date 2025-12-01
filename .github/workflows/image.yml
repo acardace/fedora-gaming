@@ -3,7 +3,6 @@ name: "Build Fedora Gaming bootc image"
 env:
   IMAGE_NAME: "fedora-gaming"
   REGISTRY: "ghcr.io/${{ github.repository_owner }}"
-  IMAGE_TAG: "latest"
 
 on:
   workflow_dispatch:
@@ -12,16 +11,20 @@ on:
       - main
     paths:
       - 'Containerfile'
-      - 'config.toml'
+      - 'Containerfile.minimal'
       - 'rootfs/**'
+      - 'host-scripts/**'
+      - 'spec_files/**'
       - '.github/workflows/image.yml'
   push:
     branches:
       - main
     paths:
       - 'Containerfile'
-      - 'config.toml'
+      - 'Containerfile.minimal'
       - 'rootfs/**'
+      - 'host-scripts/**'
+      - 'spec_files/**'
       - '.github/workflows/image.yml'
   schedule:
     - cron: '0 0 * * 0'
@@ -55,27 +58,46 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - name: Build container image
+      - name: Build minimal image
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ env.IMAGE_NAME }}
-          tags: ${{ env.IMAGE_TAG }} ${{ github.sha }}
+          tags: minimal
+          containerfiles: Containerfile.minimal
+          layers: true
+          oci: true
+
+      - name: Build full image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          tags: latest ${{ github.sha }}
           containerfiles: Containerfile
+          build-args: |
+            MINIMAL_IMAGE=localhost/${{ env.IMAGE_NAME }}:minimal
           layers: true
           oci: true
 
       - name: Login to GHCR
         uses: docker/login-action@v3
-        if: (github.event_name == 'push' || github.event_name == 'schedule') && github.ref == 'refs/heads/main'
+        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push image to GHCR
+      - name: Push minimal image to GHCR
         uses: redhat-actions/push-to-registry@v2
-        if: (github.event_name == 'push' || github.event_name == 'schedule') && github.ref == 'refs/heads/main'
+        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         with:
           image: ${{ env.IMAGE_NAME }}
           registry: ${{ env.REGISTRY }}
-          tags: ${{ env.IMAGE_TAG }} ${{ github.sha }}
+          tags: minimal
+
+      - name: Push full image to GHCR
+        uses: redhat-actions/push-to-registry@v2
+        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          registry: ${{ env.REGISTRY }}
+          tags: latest ${{ github.sha }}
