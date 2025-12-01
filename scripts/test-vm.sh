@@ -104,6 +104,7 @@ sudo virt-install \
     --graphics spice \
     --video virtio \
     --boot uefi \
+    --tpm none \
     --noautoconsole
 
 echo ""

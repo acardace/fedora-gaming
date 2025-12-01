@@ -1,3 +1,2 @@
-config.toml
 output/
 rootfs/usr/lib/ostree/auth.json

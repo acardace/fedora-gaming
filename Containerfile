@@ -87,7 +87,7 @@ RUN dnf install -y \
 
 # Install system utilities
 RUN dnf install -y \
-        flatpak plasma-discover plasma-discover-flatpak \
+        flatpak plasma-discover plasma-discover-flatpak plasma-discover-rpm-ostree \
         btop htop git make neovim fish \
         NetworkManager-wifi NetworkManager-bluetooth \
         bluez blueman fastfetch \
@@ -122,4 +122,5 @@ RUN ln -sf ../usr/share/zoneinfo/Europe/Rome /etc/localtime && \
     # Required for Steam Big Picture mode
     setsebool -P allow_execheap 1 && \
     systemctl enable sddm && \
-    systemctl preset-all
+    systemctl preset-all && \
+    systemctl --global preset-all
