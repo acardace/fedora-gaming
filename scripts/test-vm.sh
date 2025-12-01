@@ -26,8 +26,8 @@ Options:
     --help          Show this help message
 
 Environment variables:
-    IMAGE_NAME      Container image name (default: localhost/fedora-gaming)
-    IMAGE_TAG       Container image tag (default: latest)
+    IMAGE_NAME      Container image name (default: ghcr.io/acardace/fedora-gaming)
+    IMAGE_TAG       Container image tag (default: minimal)
     OUTPUT_DIR      Output directory (default: ./output)
     CONFIG_FILE     Config file path (default: ./config.toml)
 EOF

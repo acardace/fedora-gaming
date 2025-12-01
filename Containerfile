@@ -20,8 +20,7 @@ RUN mkdir -p /root/rpmbuild/{SOURCES,SPECS} && \
     rpmbuild -bb /root/rpmbuild/SPECS/umu-launcher.spec
 
 # Full gaming image based on minimal
-ARG MINIMAL_IMAGE=ghcr.io/acardace/fedora-gaming:minimal
-FROM ${MINIMAL_IMAGE}
+FROM ghcr.io/acardace/fedora-gaming:minimal
 
 LABEL quay.expires-after=12w
 
