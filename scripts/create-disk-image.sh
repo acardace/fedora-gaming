@@ -3,6 +3,7 @@ set -euo pipefail
 
 IMAGE_NAME="${IMAGE_NAME:-localhost/fedora-gaming}"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
+TARGET_IMGREF="${TARGET_IMGREF:-ghcr.io/acardace/fedora-gaming:latest}"
 OUTPUT_DIR="${OUTPUT_DIR:-./output}"
 CONFIG_FILE="${CONFIG_FILE:-./config.toml}"
 
@@ -13,6 +14,7 @@ CONFIG_FILE="$(realpath "${CONFIG_FILE}")"
 mkdir -p "${OUTPUT_DIR}"
 
 echo "Creating qcow2 disk image from: ${IMAGE_NAME}:${IMAGE_TAG}"
+echo "Target image ref for updates: ${TARGET_IMGREF}"
 echo "Using config: ${CONFIG_FILE}"
 echo "Output directory: ${OUTPUT_DIR}"
 
@@ -43,6 +45,7 @@ sudo podman run \
     quay.io/centos-bootc/bootc-image-builder:latest \
     --type qcow2 \
     --rootfs ext4 \
+    --target-imgref "${TARGET_IMGREF}" \
     --config /config.toml \
     "${IMAGE_NAME}:${IMAGE_TAG}"
 
