@@ -93,7 +93,8 @@ RUN dnf install -y \
         bluez blueman fastfetch \
         glibc-langpack-en curl wget distrobox podman \
         firefox chromium \
-        virt-manager
+        virt-manager \
+        fzf ripgrep bat xdg-terminal-exec
 
 # renovate: datasource=github-releases depName=Heroic-Games-Launcher/HeroicGamesLauncher
 ARG HEROIC_VERSION=2.18.1
