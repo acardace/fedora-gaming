@@ -2,6 +2,6 @@
 [customizations.installer.kickstart]
 contents = """
 # User configuration
-user --name=acardace --groups=wheel,libvirt --shell=/usr/bin/fish --password=$6$A6rc9m6f/aacBkAe$3Jnmlfb0YZsmWgZCcXyV/iaMgtmhRDZoSJeNwpG2gukEujBZ/NtAsOB4sHCbgGPJERa9HhW.B6uviTYNFUWB// --iscrypted
+user --name=acardace --groups=wheel,libvirt,input --shell=/usr/bin/fish --password=$6$A6rc9m6f/aacBkAe$3Jnmlfb0YZsmWgZCcXyV/iaMgtmhRDZoSJeNwpG2gukEujBZ/NtAsOB4sHCbgGPJERa9HhW.B6uviTYNFUWB// --iscrypted
 sshkey --username=acardace "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOeHlYMy97S9KKda5QdORi6wujhntAoFXIbfrF+rn9CK antonio@mushu"
 """
