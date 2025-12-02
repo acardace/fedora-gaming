@@ -57,7 +57,7 @@ RUN dnf5 -y --setopt=install_weak_deps=False install steam
 
 # Install gaming packages
 RUN dnf install -y \
-        gamescope steam-devices \
+        gamescope steam-devices kernel-modules-extra \
         mangohud goverlay \
         lutris \
         protontricks winetricks \
