@@ -4,25 +4,27 @@ set -euo pipefail
 VM_NAME="${VM_NAME:-fedora-gaming-test}"
 VCPUS="${VCPUS:-4}"
 MEMORY="${MEMORY:-8192}"
+DISK_SIZE="${DISK_SIZE:-50}"
 OUTPUT_DIR="${OUTPUT_DIR:-./output}"
 SKIP_BUILD="${SKIP_BUILD:-false}"
 
 # Convert to absolute path
 OUTPUT_DIR="$(realpath -m "${OUTPUT_DIR}")"
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
-QCOW2_PATH="${OUTPUT_DIR}/qcow2/disk.qcow2"
+ISO_PATH="${OUTPUT_DIR}/bootiso/install.iso"
 
 usage() {
     cat <<EOF
 Usage: $(basename "$0") [OPTIONS]
 
-Create a qcow2 image and start it in a libvirt VM for testing.
+Create an ISO and start a libvirt VM to test the installation.
 
 Options:
-    --skip-build    Skip building the image, use existing qcow2
+    --skip-build    Skip building the ISO, use existing one
     --name NAME     VM name (default: fedora-gaming-test)
     --vcpus N       Number of vCPUs (default: 4)
     --memory MB     Memory in MB (default: 8192)
+    --disk-size GB  Disk size in GB (default: 50)
     --help          Show this help message
 
 Environment variables:
@@ -53,6 +55,10 @@ while [[ $# -gt 0 ]]; do
             MEMORY="$2"
             shift 2
             ;;
+        --disk-size)
+            DISK_SIZE="$2"
+            shift 2
+            ;;
         --help)
             usage
             ;;
@@ -63,21 +69,21 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Build the qcow2 image if not skipping
+# Build the ISO if not skipping
 if [[ "${SKIP_BUILD}" != "true" ]]; then
-    echo "Building qcow2 image..."
-    "${SCRIPT_DIR}/create-disk-image.sh"
+    echo "Building ISO..."
+    "${SCRIPT_DIR}/create-iso.sh"
 else
-    echo "Skipping build, using existing image..."
+    echo "Skipping build, using existing ISO..."
 fi
 
-# Verify qcow2 exists
-if [[ ! -f "${QCOW2_PATH}" ]]; then
-    echo "Error: qcow2 image not found at: ${QCOW2_PATH}"
+# Verify ISO exists
+if [[ ! -f "${ISO_PATH}" ]]; then
+    echo "Error: ISO not found at: ${ISO_PATH}"
     exit 1
 fi
 
-echo "Using qcow2 image: ${QCOW2_PATH}"
+echo "Using ISO: ${ISO_PATH}"
 
 # Check if VM already exists and remove it
 if sudo virsh dominfo "${VM_NAME}" &>/dev/null; then
@@ -86,10 +92,10 @@ if sudo virsh dominfo "${VM_NAME}" &>/dev/null; then
     sudo virsh undefine "${VM_NAME}" --nvram 2>/dev/null || true
 fi
 
-# Create a copy of the qcow2 for the VM (so we don't modify the original)
+# Create a blank qcow2 disk for the VM
 VM_DISK="${OUTPUT_DIR}/${VM_NAME}.qcow2"
-echo "Creating VM disk copy: ${VM_DISK}"
-cp "${QCOW2_PATH}" "${VM_DISK}"
+echo "Creating blank ${DISK_SIZE}GB disk: ${VM_DISK}"
+qemu-img create -f qcow2 "${VM_DISK}" "${DISK_SIZE}G"
 
 # Create and start the VM
 echo "Creating VM: ${VM_NAME}"
@@ -98,7 +104,7 @@ sudo virt-install \
     --vcpus "${VCPUS}" \
     --memory "${MEMORY}" \
     --disk "path=${VM_DISK},format=qcow2" \
-    --import \
+    --cdrom "${ISO_PATH}" \
     --os-variant fedora-unknown \
     --network network=default \
     --graphics spice \
@@ -109,10 +115,11 @@ sudo virt-install \
 
 echo ""
 echo "VM '${VM_NAME}' created and started!"
+echo "The installer should be running - use virt-viewer to interact with it."
 echo ""
 echo "Useful commands:"
-echo "  View console:     sudo virsh console ${VM_NAME}"
 echo "  Open GUI:         virt-viewer ${VM_NAME}"
+echo "  View console:     sudo virsh console ${VM_NAME}"
 echo "  Stop VM:          sudo virsh shutdown ${VM_NAME}"
 echo "  Force stop:       sudo virsh destroy ${VM_NAME}"
 echo "  Delete VM:        sudo virsh undefine ${VM_NAME} --nvram"
