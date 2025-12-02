@@ -4,8 +4,8 @@ FROM quay.io/fedora/fedora-bootc:43
 
 LABEL quay.expires-after=12w
 
-# Install fish shell (used as default shell)
-RUN dnf install -y fish && \
+# Install fish shell (used as default shell) and libvirt (for libvirt group)
+RUN dnf install -y fish libvirt && \
     dnf clean all
 
 # Copy system configuration files
