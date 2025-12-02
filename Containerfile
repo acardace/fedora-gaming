@@ -66,7 +66,6 @@ RUN dnf install -y \
         sunshine \
         latencyflex-vulkan-layer \
         vulkan-tools vulkan-loader \
-        mesa-vulkan-drivers mesa-va-drivers mesa-vdpau-drivers \
         libva-utils vkBasalt \
         corectrl \
         lact \
@@ -79,11 +78,12 @@ RUN dnf install -y \
         ffmpeg
 
 # Install firmware and AMD drivers
+# Use freeworld mesa drivers from RPM Fusion for hardware encoding support
 RUN dnf install -y \
         linux-firmware linux-firmware-whence \
         alsa-sof-firmware realtek-firmware \
         amd-gpu-firmware \
-        mesa-va-drivers mesa-vdpau-drivers mesa-vulkan-drivers
+        mesa-va-drivers-freeworld mesa-vdpau-drivers-freeworld mesa-vulkan-drivers
 
 # Install system utilities
 RUN dnf install -y \
