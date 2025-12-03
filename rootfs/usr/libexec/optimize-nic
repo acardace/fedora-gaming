@@ -17,3 +17,8 @@ fi
 
 # 3. DISABLE FLOW CONTROL
 $ETHTOOL -A "$INTERFACE" rx off tx off 2>/dev/null
+
+# 4. DISABLE INTERRUPT COALESCENCE (Lowest Latency)
+# We set "adaptive-rx off" and "rx-usecs 0" to interrupt immediately.
+# Warning: This increases CPU usage, but cuts latency.
+$ETHTOOL -C "$INTERFACE" adaptive-rx off adaptive-tx off rx-usecs 0 tx-usecs 0 2>/dev/null
