@@ -1,0 +1,2 @@
+# /usr/lib/udev/rules.d/90-optimize-nic.rules
+ACTION=="add|change", SUBSYSTEM=="net", KERNEL=="en*|eth*", RUN+="/usr/libexec/optimize-nic %k"
