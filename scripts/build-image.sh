@@ -13,6 +13,7 @@ if [[ "${BUILD_MINIMAL}" == "true" ]]; then
         -t "${IMAGE_NAME}:minimal" \
         .
     echo "✓ Minimal image built successfully: ${IMAGE_NAME}:minimal"
+    podman push "${IMAGE_NAME}:minimal"
 fi
 
 # Build full image based on minimal
