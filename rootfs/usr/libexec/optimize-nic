@@ -2,23 +2,18 @@
 INTERFACE=$1
 ETHTOOL="/usr/sbin/ethtool"
 
-# Exit if ethtool is missing
 if [ ! -x "$ETHTOOL" ]; then exit 1; fi
 
-# 1. READ HARDWARE LIMITS
-# Parse "Pre-set maximums"
+# 1. APPLY RING BUFFERS
 MAX_RX=$($ETHTOOL -g "$INTERFACE" | awk '/Pre-set maximums/ {flag=1} flag && /RX:/ {print $2; exit}')
 MAX_TX=$($ETHTOOL -g "$INTERFACE" | awk '/Pre-set maximums/ {flag=1} flag && /TX:/ {print $2; exit}')
-
-# 2. APPLY RING BUFFERS
 if [[ -n "$MAX_RX" && -n "$MAX_TX" ]]; then
     $ETHTOOL -G "$INTERFACE" rx "$MAX_RX" tx "$MAX_TX" 2>/dev/null
 fi
 
-# 3. DISABLE FLOW CONTROL
-$ETHTOOL -A "$INTERFACE" rx off tx off 2>/dev/null
+# 2. FORCE DISABLE FLOW CONTROL (Aggressive)
+# We turn off autoneg for pause frames specifically, then kill RX/TX pause
+$ETHTOOL -A "$INTERFACE" autoneg off rx off tx off 2>/dev/null
 
-# 4. DISABLE INTERRUPT COALESCENCE (Lowest Latency)
-# We set "adaptive-rx off" and "rx-usecs 0" to interrupt immediately.
-# Warning: This increases CPU usage, but cuts latency.
+# 3. DISABLE INTERRUPT COALESCENCE (Fastest Response)
 $ETHTOOL -C "$INTERFACE" adaptive-rx off adaptive-tx off rx-usecs 0 tx-usecs 0 2>/dev/null
