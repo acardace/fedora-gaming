@@ -1,6 +1,6 @@
 # Minimal bootc image for ISO installation
 # After install, run: bootc switch ghcr.io/acardace/fedora-gaming:latest
-FROM quay.io/fedora/fedora-bootc:43
+FROM quay.io/fedora/fedora-bootc:44
 
 LABEL quay.expires-after=12w
 
