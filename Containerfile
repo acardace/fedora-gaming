@@ -1,5 +1,5 @@
 # Build stage for umu-launcher
-FROM quay.io/fedora/fedora:43 AS umu-builder
+FROM quay.io/fedora/fedora:latest AS umu-builder
 
 RUN dnf install -y \
         rpm-build rpmdevtools \
