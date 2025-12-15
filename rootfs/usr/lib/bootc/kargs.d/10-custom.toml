@@ -2,7 +2,7 @@
 kargs = [
     "rootflags=rw",
     "mitigations=off",
-    "-quiet",
+    "quiet",
     "firmware_class.path=/etc/firmware",
     "drm.edid_firmware=DP-2:edid/edid.bin",
     "video=DP-2:e",
