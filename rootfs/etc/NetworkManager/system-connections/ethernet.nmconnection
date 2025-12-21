@@ -5,7 +5,8 @@ type=ethernet
 autoconnect=true
 
 [ethernet]
-wake-on-lan=magic
+# Wake on lan
+wake-on-lan=0x40
 
 [ipv4]
 method=auto
