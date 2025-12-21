@@ -1,0 +1,15 @@
+[Unit]
+Description=Sunshine 6GHz Access Point
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/start-sunshine-ap.sh
+ExecStop=/usr/local/bin/stop-sunshine-ap.sh
+
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
