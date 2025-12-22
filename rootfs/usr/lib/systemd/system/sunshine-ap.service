@@ -1,0 +1,13 @@
+[Unit]
+Description=Sunshine/Moonlight WiFi Access Point
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=start-sunshine-ap.sh -6
+ExecStop=stop-sunshine-ap.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
