@@ -26,7 +26,7 @@ while [[ $# -gt 0 ]]; do
             echo "Usage: $0 [-6|--6ghz] [-w|--160mhz] [-d|--dfs] [interface]"
             echo "  -6, --6ghz    Use 6GHz band instead of 5GHz"
             echo "  -w, --160mhz  Use 160MHz channel width (default: 80MHz)"
-            echo "  -d, --dfs     Use DFS channel 100 for 5GHz (default: channel 36)"
+            echo "  -d, --dfs     Use UNII-3 channel 149 for 5GHz (default: channel 36)"
             echo "  interface     WiFi interface (auto-detected if not specified)"
             exit 0
             ;;
@@ -159,7 +159,7 @@ else
     # 5GHz configuration
     if [ "$USE_DFS" -eq 1 ]; then
         CHANNEL_5G=100
-        CENTER_FREQ_IDX=106  # Center of 100-116 block
+        CENTER_FREQ_IDX=106
         echo "Using DFS channel 100"
     else
         CHANNEL_5G=36
@@ -175,6 +175,8 @@ country_code=IT
 # --- BASE 5GHz SETTINGS ---
 hw_mode=a
 channel=$CHANNEL_5G
+ieee80211d=1
+ieee80211h=1
 
 # --- WI-FI 6 (AX) SETTINGS ---
 ieee80211ax=1
