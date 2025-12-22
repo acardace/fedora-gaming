@@ -5,6 +5,7 @@ WIFI_IF=""
 IP_ADDR="192.168.10.1"
 USE_6GHZ=0
 USE_160MHZ=0
+USE_DFS=0
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -17,10 +18,15 @@ while [[ $# -gt 0 ]]; do
             USE_160MHZ=1
             shift
             ;;
+        -d|--dfs)
+            USE_DFS=1
+            shift
+            ;;
         -h|--help)
-            echo "Usage: $0 [-6|--6ghz] [-w|--160mhz] [interface]"
+            echo "Usage: $0 [-6|--6ghz] [-w|--160mhz] [-d|--dfs] [interface]"
             echo "  -6, --6ghz    Use 6GHz band instead of 5GHz"
             echo "  -w, --160mhz  Use 160MHz channel width (default: 80MHz)"
+            echo "  -d, --dfs     Use DFS channel 100 for 5GHz (default: channel 36)"
             echo "  interface     WiFi interface (auto-detected if not specified)"
             exit 0
             ;;
@@ -151,6 +157,15 @@ wmm_enabled=1
 EOF
 else
     # 5GHz configuration
+    if [ "$USE_DFS" -eq 1 ]; then
+        CHANNEL_5G=100
+        CENTER_FREQ_IDX=106  # Center of 100-116 block
+        echo "Using DFS channel 100"
+    else
+        CHANNEL_5G=36
+        CENTER_FREQ_IDX=42   # Center of 36-48 block
+    fi
+
     cat > "$HOSTAPD_CONF" <<EOF
 interface=$WIFI_IF
 driver=nl80211
@@ -159,20 +174,19 @@ country_code=IT
 
 # --- BASE 5GHz SETTINGS ---
 hw_mode=a
-channel=36
+channel=$CHANNEL_5G
 
 # --- WI-FI 6 (AX) SETTINGS ---
 ieee80211ax=1
 # 1 = 80MHz Width
 he_oper_chwidth=1
-# Center of the 36-48 block is Channel 42
-he_oper_centr_freq_seg0_idx=42
+he_oper_centr_freq_seg0_idx=$CENTER_FREQ_IDX
 
 # --- WI-FI 5 (AC) SETTINGS (CRITICAL FIX) ---
 # You MUST enable AC and set VHT parameters identical to HE parameters
 ieee80211ac=1
 vht_oper_chwidth=1
-vht_oper_centr_freq_seg0_idx=42
+vht_oper_centr_freq_seg0_idx=$CENTER_FREQ_IDX
 # Set HT40+ capability (Use 40MHz+ width for N devices)
 ht_capab=[HT40+][SHORT-GI-40][SHORT-GI-20]
 
