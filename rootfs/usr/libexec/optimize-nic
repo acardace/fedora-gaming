@@ -14,3 +14,12 @@ fi
 # 2. FORCE DISABLE FLOW CONTROL (Aggressive)
 # We turn off autoneg for pause frames specifically, then kill RX/TX pause
 $ETHTOOL -A "$INTERFACE" autoneg off rx off tx off 2>/dev/null
+
+# 3. REPLACE fq_codel WITH pfifo_fast FOR LOWER LATENCY
+# fq_codel adds requeuing and jitter for real-time UDP streaming (Sunshine/Moonlight)
+TC="/usr/sbin/tc"
+if [ -x "$TC" ]; then
+    for parent in $($TC qdisc show dev "$INTERFACE" 2>/dev/null | grep -oP 'parent \K\S+'); do
+        $TC qdisc replace dev "$INTERFACE" parent "$parent" pfifo_fast 2>/dev/null
+    done
+fi
