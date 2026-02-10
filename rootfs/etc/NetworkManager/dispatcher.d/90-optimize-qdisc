@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Replace fq_codel with pfifo_fast on all TX queues for lower latency
+# fq_codel adds requeuing and jitter for real-time UDP streaming (Sunshine/Moonlight)
+
+INTERFACE="$1"
+ACTION="$2"
+
+if [ "$ACTION" != "up" ]; then
+    exit 0
+fi
+
+TC="/usr/sbin/tc"
+if [ -x "$TC" ]; then
+    # Re-create the root mq qdisc to get a non-zero handle
+    # (tc replace fails silently with the default 0: handle)
+    $TC qdisc replace dev "$INTERFACE" root mq 2>/dev/null
+    for parent in $($TC qdisc show dev "$INTERFACE" 2>/dev/null | grep -oP 'parent \K\S+'); do
+        $TC qdisc replace dev "$INTERFACE" parent "$parent" pfifo_fast 2>/dev/null
+    done
+fi
