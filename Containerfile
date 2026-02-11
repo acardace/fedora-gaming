@@ -33,6 +33,7 @@ RUN dnf install -y 'dnf5-command(copr)' && \
     dnf copr enable -y kylegospo/LatencyFleX && \
     dnf copr enable -y ilyaz/LACT && \
     dnf copr enable -y lizardbyte/beta && \
+    dnf copr enable -y bieszczaders/kernel-cachyos-addons && \
     dnf install -y \
         https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-43.noarch.rpm \
         https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-43.noarch.rpm
@@ -69,7 +70,8 @@ RUN dnf install -y \
         libva-utils vkBasalt \
         corectrl \
         lact \
-        input-remapper
+        input-remapper \
+        scx-scheds scx-tools
 
 # Install audio/video essentials
 RUN dnf install -y \

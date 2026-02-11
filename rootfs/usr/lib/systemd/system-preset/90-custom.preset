@@ -1,4 +1,5 @@
 enable sddm.service
+enable scx_loader.service
 enable libvirtd.service
 enable sshd.service
 enable bootloader-update.service
