@@ -45,3 +45,6 @@ else
   kscreen-doctor "output.${VIRTUAL_OUTPUT}.mode.1920x1080@60"
   kscreen-doctor "output.${VIRTUAL_OUTPUT}.hdr.enable"
 fi
+
+# Switch back to auto scheduler mode
+scxctl switch -m auto 2>/dev/null

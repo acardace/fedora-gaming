@@ -49,3 +49,6 @@ if [ "$SUNSHINE_CLIENT_HDR" = "true" ]; then
 else
   kscreen-doctor "output.${VIRTUAL_OUTPUT}.hdr.disable"
 fi
+
+# Switch to gaming scheduler mode for lower latency
+scxctl switch -m gaming 2>/dev/null
