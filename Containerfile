@@ -113,6 +113,9 @@ RUN dnf install -y /tmp/*.rpm && \
 RUN dnf remove -y plymouth ModemManager cups plasma-discover-packagekit && \
     dnf clean all
 
+# Set cap_sys_admin on Sunshine binary for KMS capture on Wayland
+RUN setcap 'cap_sys_admin+p' $(readlink -f /usr/bin/sunshine)
+
 # Enable systemd services
 RUN systemctl enable sddm && \
     systemctl preset-all && \
