@@ -105,6 +105,10 @@ ARG HEROIC_VERSION=2.19.1
 RUN dnf install -y \
     https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/releases/download/v${HEROIC_VERSION}/Heroic-${HEROIC_VERSION}-linux-x86_64.rpm
 
+# Install OpenCode
+RUN dnf install -y \
+    https://github.com/anomalyco/opencode/releases/latest/download/opencode-desktop-linux-$(uname -m).rpm
+
 # Install umu-launcher from local RPM
 RUN dnf install -y /tmp/*.rpm && \
     rm -f /tmp/*.rpm
