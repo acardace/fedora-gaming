@@ -96,7 +96,7 @@ RUN dnf install -y \
         glibc-langpack-en curl wget distrobox podman \
         firefox chromium \
         virt-manager \
-        fzf ripgrep bat xdg-terminal-exec hostapd dnsmasq
+        fzf ripgrep bat xdg-terminal-exec hostapd dnsmasq stow
 
 # renovate: datasource=github-releases depName=Heroic-Games-Launcher/HeroicGamesLauncher
 ARG HEROIC_VERSION=2.19.1
