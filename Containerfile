@@ -19,10 +19,28 @@ RUN mkdir -p /root/rpmbuild/{SOURCES,SPECS} && \
     spectool -g -R /root/rpmbuild/SPECS/umu-launcher.spec && \
     rpmbuild -bb /root/rpmbuild/SPECS/umu-launcher.spec
 
-# Full gaming image based on minimal
-FROM ghcr.io/acardace/fedora-gaming:minimal
+# Full gaming bootc image
+FROM quay.io/fedora/fedora-bootc:latest
 
 LABEL quay.expires-after=12w
+
+# Install fish shell (used as default shell) and libvirt (for libvirt group)
+RUN dnf install -y fish libvirt && \
+    dnf clean all
+
+# Copy system configuration files
+COPY rootfs/ /
+
+# Copy scripts
+COPY host-scripts/ /usr/local/bin/
+
+# Configure timezone, sudoers, and SELinux
+RUN ln -sf ../usr/share/zoneinfo/Europe/Rome /etc/localtime && \
+    echo '%wheel ALL=(ALL) ALL' > /etc/sudoers.d/wheel && \
+    # Set fish as root's shell
+    usermod -s /usr/bin/fish root && \
+    # Required for Steam Big Picture mode
+    setsebool -P allow_execheap 1
 
 # Copy umu-launcher RPM from builder
 COPY --from=umu-builder /root/rpmbuild/RPMS/*/*.rpm /tmp/
@@ -35,6 +53,7 @@ COPY --from=umu-builder /root/rpmbuild/RPMS/*/*.rpm /tmp/
 #  - Other COPRs: LatencyFleX, LACT, Sunshine, cachyos-addons
 RUN dnf install -y 'dnf5-command(copr)' && \
     dnf config-manager addrepo --from-repofile=https://negativo17.org/repos/fedora-steam.repo && \
+    dnf config-manager addrepo --from-repofile=https://negativo17.org/repos/fedora-multimedia.repo && \
     dnf config-manager addrepo --from-repofile=https://negativo17.org/repos/fedora-rar.repo && \
     dnf install -y --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' \
         terra-release terra-release-extras terra-release-mesa && \
@@ -47,7 +66,6 @@ RUN dnf install -y 'dnf5-command(copr)' && \
     dnf install -y \
         https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
         https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm && \
-    sed -i 's@enabled=0@enabled=1@g' /etc/yum.repos.d/negativo17-fedora-multimedia.repo && \
     dnf config-manager setopt "terra-mesa".enabled=false && \
     dnf config-manager setopt "*negativo17*".priority=4 "*negativo17*".exclude="mesa-*" && \
     dnf config-manager setopt "*rpmfusion*".priority=5 "*rpmfusion*".exclude="mesa-*" && \
