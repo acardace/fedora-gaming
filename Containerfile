@@ -66,22 +66,16 @@ RUN dnf install -y 'dnf5-command(copr)' && \
     dnf install -y \
         https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
         https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm && \
-    dnf config-manager setopt "terra-mesa".enabled=false && \
-    dnf config-manager setopt "*negativo17*".priority=4 "*negativo17*".exclude="mesa-*" && \
-    dnf config-manager setopt "*rpmfusion*".priority=5 "*rpmfusion*".exclude="mesa-*" && \
-    dnf config-manager setopt "*fedora*".exclude="mesa-*"
+    dnf config-manager setopt "fedora-steam".priority=4 && \
+    dnf config-manager setopt "fedora-multimedia".priority=4 && \
+    dnf config-manager setopt "fedora-rar".priority=4 && \
+    dnf config-manager setopt "*rpmfusion*".priority=5
 
 # Swap Mesa for Terra Mesa (Valve-patched, 26.x)
-# Swap pipewire, bluez, wireplumber, Xwayland for Bazzite-patched versions
+# Terra Mesa has higher priority so subsequent installs pull mesa from there.
 RUN dnf -y remove mesa-va-drivers && \
     dnf -y swap --repo=terra-mesa mesa-filesystem mesa-filesystem && \
-    dnf -y swap --repo=copr:copr.fedorainfracloud.org:ublue-os:bazzite wireplumber wireplumber && \
-    dnf -y swap --repo=copr:copr.fedorainfracloud.org:ublue-os:bazzite-multilib \
-        pipewire pipewire && \
-    dnf -y swap --repo=copr:copr.fedorainfracloud.org:ublue-os:bazzite-multilib \
-        bluez bluez && \
-    dnf -y swap --repo=copr:copr.fedorainfracloud.org:ublue-os:bazzite-multilib \
-        xorg-x11-server-Xwayland xorg-x11-server-Xwayland && \
+    dnf config-manager setopt "terra-mesa".priority=1 && \
     dnf5 versionlock add \
         mesa-dri-drivers \
         mesa-filesystem \
@@ -89,7 +83,32 @@ RUN dnf -y remove mesa-va-drivers && \
         mesa-libGL \
         mesa-libgbm \
         mesa-vulkan-drivers \
-        mesa-va-drivers \
+        mesa-va-drivers
+
+# Install KDE Plasma desktop (pulls in pipewire, wireplumber, bluez, Xwayland)
+# Exclude vlc* and phonon vlc backends to avoid file conflicts between
+# fedora and rpmfusion VLC packages. VLC is installed from rpmfusion after.
+RUN dnf install -y --exclude='vlc*' --exclude='phonon*vlc*' \
+        @kde-desktop-environment \
+        sddm sddm-kcm \
+        plasma-workspace plasma-desktop \
+        dolphin kitty spectacle ark okular gwenview kate \
+        kde-settings-plasma \
+        xdg-desktop-portal-kde \
+        qt5-qtwayland qt6-qtwayland \
+        rtkit && \
+    dnf install -y --exclude='vlc-plugins-base' vlc vlc-plugins-freeworld
+
+# Swap pipewire, wireplumber, bluez, Xwayland for Bazzite-patched versions
+# (must run after KDE install which pulls in the stock packages)
+RUN dnf -y swap --repo=copr:copr.fedorainfracloud.org:ublue-os:bazzite-multilib \
+        pipewire pipewire && \
+    dnf -y swap --repo=copr:copr.fedorainfracloud.org:ublue-os:bazzite wireplumber wireplumber && \
+    dnf -y swap --repo=copr:copr.fedorainfracloud.org:ublue-os:bazzite-multilib \
+        bluez bluez && \
+    dnf -y swap --repo=copr:copr.fedorainfracloud.org:ublue-os:bazzite-multilib \
+        xorg-x11-server-Xwayland xorg-x11-server-Xwayland && \
+    dnf5 versionlock add \
         pipewire \
         pipewire-alsa \
         pipewire-gstreamer \
@@ -105,16 +124,6 @@ RUN dnf -y remove mesa-va-drivers && \
         bluez-libs \
         bluez-obexd \
         xorg-x11-server-Xwayland
-
-# Install KDE Plasma desktop
-RUN dnf install -y \
-        @kde-desktop-environment \
-        sddm sddm-kcm \
-        plasma-workspace plasma-desktop \
-        dolphin kitty spectacle ark okular gwenview kate \
-        kde-settings-plasma \
-        xdg-desktop-portal-kde \
-        qt5-qtwayland qt6-qtwayland
 
 # Install ScopeBuddy
 RUN curl -Lo /usr/local/bin/scopebuddy https://raw.githubusercontent.com/HikariKnight/ScopeBuddy/refs/heads/main/bin/scopebuddy && \
