@@ -57,8 +57,6 @@ RUN dnf install -y 'dnf5-command(copr)' && \
     dnf config-manager addrepo --from-repofile=https://negativo17.org/repos/fedora-rar.repo && \
     dnf install -y --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' \
         terra-release terra-release-extras terra-release-mesa && \
-    dnf copr enable -y ublue-os/bazzite && \
-    dnf copr enable -y ublue-os/bazzite-multilib && \
     dnf copr enable -y kylegospo/LatencyFleX && \
     dnf copr enable -y ilyaz/LACT && \
     dnf copr enable -y lizardbyte/beta && \
@@ -69,12 +67,13 @@ RUN dnf install -y 'dnf5-command(copr)' && \
     dnf config-manager setopt "fedora-steam".priority=4 && \
     dnf config-manager setopt "fedora-multimedia".priority=4 && \
     dnf config-manager setopt "fedora-rar".priority=4 && \
-    dnf config-manager setopt "*rpmfusion*".priority=5
+    dnf config-manager setopt "*rpmfusion*".priority=5 "*rpmfusion*".exclude="vlc-*" && \
+    dnf config-manager setopt "fedora".exclude="vlc-*" "updates".exclude="vlc-*"
 
 # Swap Mesa for Terra Mesa (Valve-patched, 26.x)
 # Terra Mesa has higher priority so subsequent installs pull mesa from there.
-RUN dnf -y remove mesa-va-drivers && \
-    dnf -y swap --repo=terra-mesa mesa-filesystem mesa-filesystem && \
+# Note: mesa-va-drivers is obsoleted by mesa-dri-drivers in Mesa 26.x
+RUN dnf -y swap --repo=terra-mesa mesa-filesystem mesa-filesystem && \
     dnf config-manager setopt "terra-mesa".priority=1 && \
     dnf5 versionlock add \
         mesa-dri-drivers \
@@ -82,13 +81,10 @@ RUN dnf -y remove mesa-va-drivers && \
         mesa-libEGL \
         mesa-libGL \
         mesa-libgbm \
-        mesa-vulkan-drivers \
-        mesa-va-drivers
+        mesa-vulkan-drivers
 
 # Install KDE Plasma desktop (pulls in pipewire, wireplumber, bluez, Xwayland)
-# Exclude vlc* and phonon vlc backends to avoid file conflicts between
-# fedora and rpmfusion VLC packages. VLC is installed from rpmfusion after.
-RUN dnf install -y --exclude='vlc*' --exclude='phonon*vlc*' \
+RUN dnf install -y \
         @kde-desktop-environment \
         sddm sddm-kcm \
         plasma-workspace plasma-desktop \
@@ -96,34 +92,7 @@ RUN dnf install -y --exclude='vlc*' --exclude='phonon*vlc*' \
         kde-settings-plasma \
         xdg-desktop-portal-kde \
         qt5-qtwayland qt6-qtwayland \
-        rtkit && \
-    dnf install -y --exclude='vlc-plugins-base' vlc vlc-plugins-freeworld
-
-# Swap pipewire, wireplumber, bluez, Xwayland for Bazzite-patched versions
-# (must run after KDE install which pulls in the stock packages)
-RUN dnf -y swap --repo=copr:copr.fedorainfracloud.org:ublue-os:bazzite-multilib \
-        pipewire pipewire && \
-    dnf -y swap --repo=copr:copr.fedorainfracloud.org:ublue-os:bazzite wireplumber wireplumber && \
-    dnf -y swap --repo=copr:copr.fedorainfracloud.org:ublue-os:bazzite-multilib \
-        bluez bluez && \
-    dnf -y swap --repo=copr:copr.fedorainfracloud.org:ublue-os:bazzite-multilib \
-        xorg-x11-server-Xwayland xorg-x11-server-Xwayland && \
-    dnf5 versionlock add \
-        pipewire \
-        pipewire-alsa \
-        pipewire-gstreamer \
-        pipewire-jack-audio-connection-kit \
-        pipewire-jack-audio-connection-kit-libs \
-        pipewire-libs \
-        pipewire-plugin-libcamera \
-        pipewire-pulseaudio \
-        pipewire-utils \
-        wireplumber \
-        wireplumber-libs \
-        bluez \
-        bluez-libs \
-        bluez-obexd \
-        xorg-x11-server-Xwayland
+        rtkit
 
 # Install ScopeBuddy
 RUN curl -Lo /usr/local/bin/scopebuddy https://raw.githubusercontent.com/HikariKnight/ScopeBuddy/refs/heads/main/bin/scopebuddy && \
@@ -135,7 +104,7 @@ RUN dnf5 -y --setopt=install_weak_deps=False install steam
 
 # Install gaming packages (including 32-bit libs for Proton compatibility)
 RUN dnf install -y \
-        gamescope gamescope-libs.x86_64 gamescope-libs.i686 gamescope-shaders \
+        gamescope \
         steam-devices kernel-modules-extra \
         mangohud.x86_64 mangohud.i686 \
         goverlay \
@@ -149,8 +118,6 @@ RUN dnf install -y \
         libva-utils \
         vkBasalt.x86_64 vkBasalt.i686 \
         libFAudio.x86_64 libFAudio.i686 \
-        libobs_vkcapture.x86_64 libobs_vkcapture.i686 \
-        libobs_glcapture.x86_64 libobs_glcapture.i686 \
         corectrl \
         lact \
         input-remapper \
@@ -171,20 +138,21 @@ RUN dnf install -y \
         alsa-ucm alsa-utils \
         ffmpeg \
         libfreeaptx \
-        ladspa-caps-plugins \
-        ladspa-noise-suppression-for-voice && \
-    dnf install -y --enable-repo="*rpmfusion*" --disable-repo="*negativo17*" \
+        ladspa-caps-plugins && \
+    dnf install -y \
         libaacs \
         libbdplus \
         libbluray \
         libbluray-utils
 
 # Install firmware and AMD drivers (Mesa from Terra, VA-API from Terra Mesa)
-RUN dnf install -y --enable-repo=terra-mesa \
+# Mesa VA/vulkan drivers come from Terra Mesa (already swapped).
+# RPM Fusion freeworld drivers are incompatible with Terra Mesa's mesa-filesystem.
+RUN dnf install -y \
         linux-firmware linux-firmware-whence \
         alsa-sof-firmware realtek-firmware \
         amd-gpu-firmware \
-        mesa-va-drivers mesa-vdpau-drivers-freeworld mesa-vulkan-drivers
+        mesa-vulkan-drivers
 
 # Install hardware support
 RUN dnf install -y \
