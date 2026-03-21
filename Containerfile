@@ -145,14 +145,11 @@ RUN dnf install -y \
         libbluray \
         libbluray-utils
 
-# Install firmware and AMD drivers (Mesa from Terra, VA-API from Terra Mesa)
-# Mesa VA/vulkan drivers come from Terra Mesa (already swapped).
-# RPM Fusion freeworld drivers are incompatible with Terra Mesa's mesa-filesystem.
+# Install firmware (mesa-vulkan-drivers already installed via Terra Mesa swap)
 RUN dnf install -y \
         linux-firmware linux-firmware-whence \
         alsa-sof-firmware realtek-firmware \
-        amd-gpu-firmware \
-        mesa-vulkan-drivers
+        amd-gpu-firmware
 
 # Install hardware support
 RUN dnf install -y \
