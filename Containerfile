@@ -65,11 +65,11 @@ RUN dnf install -y 'dnf5-command(copr)' && \
         https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
         https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm && \
     dnf config-manager setopt "fedora-steam".priority=4 && \
-    dnf config-manager setopt "fedora-multimedia".priority=4 && \
+    dnf config-manager setopt "fedora-multimedia".priority=4 \
+        "fedora-multimedia".exclude="gstreamer1-plugins-bad gstreamer1-plugins-ugly vlc-plugins-base" && \
     dnf config-manager setopt "fedora-rar".priority=4 && \
     dnf config-manager setopt "*rpmfusion*".priority=5 "*rpmfusion*".exclude="vlc-*" && \
-    dnf config-manager setopt "fedora".exclude="vlc-* gstreamer1-plugins-bad gstreamer1-plugins-ugly" \
-        "updates".exclude="vlc-* gstreamer1-plugins-bad gstreamer1-plugins-ugly"
+    dnf config-manager setopt "fedora".exclude="vlc-*" "updates".exclude="vlc-*"
 
 # Swap Mesa for Terra Mesa (Valve-patched, 26.x)
 # Terra Mesa has higher priority so subsequent installs pull mesa from there.
