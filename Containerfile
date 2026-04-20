@@ -177,7 +177,7 @@ RUN dnf install -y \
         python3-icoextract
 
 # renovate: datasource=github-releases depName=Heroic-Games-Launcher/HeroicGamesLauncher
-ARG HEROIC_VERSION=2.19.1
+ARG HEROIC_VERSION=2.20.1
 
 # Install Heroic Games Launcher
 RUN dnf install -y \
