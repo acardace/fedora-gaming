@@ -87,7 +87,6 @@ RUN dnf -y swap --repo=terra-mesa mesa-filesystem mesa-filesystem && \
 # Install KDE Plasma desktop (pulls in pipewire, wireplumber, bluez, Xwayland)
 RUN dnf install -y \
         @kde-desktop-environment \
-        sddm sddm-kcm \
         plasma-workspace plasma-desktop \
         dolphin kitty spectacle ark okular gwenview kate \
         kde-settings-plasma \
@@ -199,6 +198,5 @@ RUN dnf remove -y plymouth ModemManager cups plasma-discover-packagekit && \
 RUN setcap 'cap_sys_admin+p' $(readlink -f /usr/bin/sunshine)
 
 # Enable systemd services
-RUN systemctl enable sddm && \
-    systemctl preset-all && \
+RUN systemctl preset-all && \
     systemctl --global preset-all
