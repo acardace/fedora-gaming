@@ -199,4 +199,5 @@ RUN setcap 'cap_sys_admin+p' $(readlink -f /usr/bin/sunshine)
 
 # Enable systemd services
 RUN systemctl preset-all && \
-    systemctl --global preset-all
+    systemctl --global preset-all && \
+    systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
