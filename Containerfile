@@ -25,17 +25,10 @@ FROM quay.io/fedora/fedora-bootc:latest
 LABEL quay.expires-after=12w
 
 # Install fish shell (used as default shell) and libvirt (for libvirt group)
-RUN dnf install -y fish libvirt && \
-    dnf clean all
-
-# Copy system configuration files
-COPY rootfs/ /
-
-# Copy scripts
-COPY host-scripts/ /usr/local/bin/
-
 # Configure timezone, sudoers, and SELinux
-RUN ln -sf ../usr/share/zoneinfo/Europe/Rome /etc/localtime && \
+RUN dnf install -y fish libvirt && \
+    dnf clean all && \
+    ln -sf ../usr/share/zoneinfo/Europe/Rome /etc/localtime && \
     echo '%wheel ALL=(ALL) ALL' > /etc/sudoers.d/wheel && \
     # Set fish as root's shell
     usermod -s /usr/bin/fish root && \
@@ -69,7 +62,8 @@ RUN dnf install -y 'dnf5-command(copr)' && \
         "fedora-multimedia".exclude="gstreamer1-plugins-bad gstreamer1-plugins-ugly vlc-plugins-base" && \
     dnf config-manager setopt "fedora-rar".priority=4 && \
     dnf config-manager setopt "*rpmfusion*".priority=5 "*rpmfusion*".exclude="vlc-*" && \
-    dnf config-manager setopt "fedora".exclude="vlc-*" "updates".exclude="vlc-*"
+    dnf config-manager setopt "fedora".exclude="vlc-*" "updates".exclude="vlc-*" && \
+    dnf clean all
 
 # Swap Mesa for Terra Mesa (Valve-patched, 26.x)
 # Terra Mesa has higher priority so subsequent installs pull mesa from there.
@@ -82,7 +76,8 @@ RUN dnf -y swap --repo=terra-mesa mesa-filesystem mesa-filesystem && \
         mesa-libEGL \
         mesa-libGL \
         mesa-libgbm \
-        mesa-vulkan-drivers
+        mesa-vulkan-drivers && \
+    dnf clean all
 
 # Install KDE Plasma desktop (pulls in pipewire, wireplumber, bluez, Xwayland)
 RUN dnf install -y \
@@ -92,7 +87,8 @@ RUN dnf install -y \
         kde-settings-plasma \
         xdg-desktop-portal-kde \
         qt5-qtwayland qt6-qtwayland \
-        rtkit
+        rtkit && \
+    dnf clean all
 
 # Install ScopeBuddy
 RUN curl -Lo /usr/local/bin/scopebuddy https://raw.githubusercontent.com/HikariKnight/ScopeBuddy/refs/heads/main/bin/scopebuddy && \
@@ -100,7 +96,8 @@ RUN curl -Lo /usr/local/bin/scopebuddy https://raw.githubusercontent.com/HikariK
     ln -s scopebuddy /usr/local/bin/scb
 
 # Install Steam from negativo17
-RUN dnf5 -y --setopt=install_weak_deps=False install steam
+RUN dnf5 -y --setopt=install_weak_deps=False install steam && \
+    dnf clean all
 
 # Install gaming packages (including 32-bit libs for Proton compatibility)
 RUN dnf install -y \
@@ -124,12 +121,14 @@ RUN dnf install -y \
         scx-scheds scx-tools \
         dbus-x11 xrandr evtest \
         libxcrypt-compat \
-        xdg-user-dirs
+        xdg-user-dirs && \
+    dnf clean all
 
 # Install VR packages
 RUN dnf install -y \
         openxr \
-        wivrn
+        wivrn && \
+    dnf clean all
 
 # Install audio/video essentials + multimedia codecs
 RUN dnf install -y \
@@ -138,18 +137,19 @@ RUN dnf install -y \
         alsa-ucm alsa-utils \
         ffmpeg \
         libfreeaptx \
-        ladspa-caps-plugins && \
-    dnf install -y \
+        ladspa-caps-plugins \
         libaacs \
         libbdplus \
         libbluray \
-        libbluray-utils
+        libbluray-utils && \
+    dnf clean all
 
 # Install firmware (mesa-vulkan-drivers already installed via Terra Mesa swap)
 RUN dnf install -y \
         linux-firmware linux-firmware-whence \
         alsa-sof-firmware realtek-firmware \
-        amd-gpu-firmware
+        amd-gpu-firmware && \
+    dnf clean all
 
 # Install hardware support
 RUN dnf install -y \
@@ -159,7 +159,8 @@ RUN dnf install -y \
         libinput-utils \
         v4l-utils \
         libcec \
-        pulseaudio-utils
+        pulseaudio-utils && \
+    dnf clean all
 
 # Install system utilities
 RUN dnf install -y \
@@ -173,31 +174,38 @@ RUN dnf install -y \
         fzf ripgrep bat xdg-terminal-exec hostapd dnsmasq stow \
         duf lshw \
         p7zip p7zip-plugins rar lzip \
-        python3-icoextract
+        python3-icoextract && \
+    dnf clean all
 
 # renovate: datasource=github-releases depName=Heroic-Games-Launcher/HeroicGamesLauncher
 ARG HEROIC_VERSION=2.22.0
 
 # Install Heroic Games Launcher
 RUN dnf install -y \
-    https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/releases/download/v${HEROIC_VERSION}/Heroic-${HEROIC_VERSION}-linux-x86_64.rpm
+    https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/releases/download/v${HEROIC_VERSION}/Heroic-${HEROIC_VERSION}-linux-x86_64.rpm && \
+    dnf clean all
 
 # Install OpenCode
 RUN dnf install -y \
-    https://github.com/anomalyco/opencode/releases/latest/download/opencode-desktop-linux-$(uname -m).rpm
+    https://github.com/anomalyco/opencode/releases/latest/download/opencode-desktop-linux-$(uname -m).rpm && \
+    dnf clean all
 
-# Install umu-launcher from local RPM
+# Install umu-launcher from local RPM and remove unnecessary packages
 RUN dnf install -y /tmp/*.rpm && \
-    rm -f /tmp/*.rpm
-
-# Remove unnecessary packages for faster boot
-RUN dnf remove -y plymouth ModemManager cups plasma-discover-packagekit && \
+    rm -f /tmp/*.rpm && \
+    dnf remove -y plymouth ModemManager cups plasma-discover-packagekit && \
     dnf clean all
 
 # Set cap_sys_admin on Sunshine binary for KMS capture on Wayland
 RUN setcap 'cap_sys_admin+p' $(readlink -f /usr/bin/sunshine)
 
+# Copy system configuration files and scripts
+# (done late so that rootfs/ edits don't bust the package install cache)
+COPY rootfs/ /
+COPY host-scripts/ /usr/local/bin/
+
 # Enable systemd services
+# (must run after rootfs/ is copied: reads custom preset and unit files from there)
 RUN systemctl preset-all && \
     systemctl --global preset-all && \
     systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target

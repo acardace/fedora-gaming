@@ -62,7 +62,7 @@ jobs:
           image: ${{ env.IMAGE_NAME }}
           tags: latest ${{ github.sha }}
           containerfiles: Containerfile
-          layers: false
+          layers: true
           oci: true
 
       - name: Login to Quay.io
