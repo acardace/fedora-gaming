@@ -40,8 +40,8 @@ if [ -n "$SUNSHINE_CLIENT_WIDTH" ] && [ -n "$SUNSHINE_CLIENT_HEIGHT" ] && [ -n "
   fi
 fi
 
-# Set scale to 1 for streaming (no point scaling for a remote client)
-kscreen-doctor "output.${VIRTUAL_OUTPUT}.scale.1"
+# Set scale to 2 for streaming (larger UI elements for remote viewing)
+kscreen-doctor "output.${VIRTUAL_OUTPUT}.scale.2"
 
 # Set HDR based on client capability
 if [ "$SUNSHINE_CLIENT_HDR" = "true" ]; then
