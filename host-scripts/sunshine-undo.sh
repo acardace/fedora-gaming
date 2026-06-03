@@ -10,6 +10,9 @@ export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 # Check if physical monitor is currently connected
 physical_connected=$(cat /sys/class/drm/card1-${PHYSICAL_OUTPUT}/status 2>/dev/null)
 
+# Remove any custom modes added during streaming
+kscreen-doctor "output.${VIRTUAL_OUTPUT}.removeCustomMode.0" 2>/dev/null
+
 # Restore saved state
 if [ -f "$STATE_FILE" ]; then
   source "$STATE_FILE"
@@ -45,6 +48,9 @@ else
   kscreen-doctor "output.${VIRTUAL_OUTPUT}.mode.1920x1080@60"
   kscreen-doctor "output.${VIRTUAL_OUTPUT}.hdr.enable"
 fi
+
+# Disable virtual display
+kscreen-doctor "output.${VIRTUAL_OUTPUT}.disable"
 
 # Switch back to auto scheduler mode
 scxctl switch -m auto 2>/dev/null
