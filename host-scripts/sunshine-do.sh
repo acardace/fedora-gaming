@@ -74,8 +74,14 @@ if [ -n "$SUNSHINE_CLIENT_WIDTH" ] && [ -n "$SUNSHINE_CLIENT_HEIGHT" ] && [ -n "
   kscreen-doctor "output.${VIRTUAL_OUTPUT}.mode.${SUNSHINE_CLIENT_WIDTH}x${SUNSHINE_CLIENT_HEIGHT}@${SUNSHINE_CLIENT_FPS}"
 fi
 
-# Set scale to 2 for streaming (larger UI elements for remote viewing)
-kscreen-doctor "output.${VIRTUAL_OUTPUT}.scale.2"
+# Compute scale dynamically to target ~1080px logical height.
+# Round to nearest 0.25 step, minimum 1.
+if [ -n "$SUNSHINE_CLIENT_HEIGHT" ]; then
+  scale=$(awk "BEGIN { s = ${SUNSHINE_CLIENT_HEIGHT} / 1080; s = int(s * 4 + 0.5) / 4; if (s < 1) s = 1; print s }")
+else
+  scale=1
+fi
+kscreen-doctor "output.${VIRTUAL_OUTPUT}.scale.${scale}"
 
 # Set HDR based on client capability
 if [ "$SUNSHINE_CLIENT_HDR" = "true" ]; then
