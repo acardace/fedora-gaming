@@ -4,9 +4,10 @@ FROM ${BASE_IMAGE}
 
 LABEL quay.expires-after=12w
 
-# Add negativo17 NVIDIA repository (latest drivers)
+# Add negativo17 NVIDIA repository (latest drivers) and NVIDIA Container Toolkit repo
 RUN dnf config-manager addrepo --from-repofile=https://negativo17.org/repos/fedora-nvidia.repo && \
     dnf config-manager setopt "fedora-nvidia".priority=4 && \
+    dnf config-manager addrepo --from-repofile=https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo && \
     dnf clean all
 
 # Install NVIDIA kernel module build dependencies and compile kmod at build time.
@@ -36,7 +37,7 @@ RUN dnf install -y \
         nvidia-persistenced && \
     dnf clean all
 
-# Install NVIDIA Wayland, VA-API, and container support
+# Install NVIDIA Wayland, VA-API, and container toolkit support
 RUN dnf install -y \
         egl-wayland.x86_64 \
         egl-wayland.i686 \
