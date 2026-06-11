@@ -19,10 +19,9 @@ RUN mkdir -p /root/rpmbuild/{SOURCES,SPECS} && \
     spectool -g -R /root/rpmbuild/SPECS/umu-launcher.spec && \
     rpmbuild -bb /root/rpmbuild/SPECS/umu-launcher.spec
 
-# Full gaming bootc image
+# Base gaming bootc image (GPU-agnostic)
+# GPU-specific layers are added by Containerfile.amd and Containerfile.nvidia
 FROM quay.io/fedora/fedora-bootc:latest
-
-LABEL quay.expires-after=12w
 
 # Install fish shell (used as default shell) and libvirt (for libvirt group)
 # Configure timezone, sudoers, and SELinux
@@ -115,7 +114,6 @@ RUN dnf install -y \
         libva-utils \
         vkBasalt.x86_64 vkBasalt.i686 \
         libFAudio.x86_64 libFAudio.i686 \
-        corectrl \
         lact \
         input-remapper \
         scx-scheds scx-tools \
@@ -145,10 +143,10 @@ RUN dnf install -y \
     dnf clean all
 
 # Install firmware (mesa-vulkan-drivers already installed via Terra Mesa swap)
+# GPU-specific firmware is installed in Containerfile.amd / Containerfile.nvidia
 RUN dnf install -y \
         linux-firmware linux-firmware-whence \
-        alsa-sof-firmware realtek-firmware \
-        amd-gpu-firmware && \
+        alsa-sof-firmware realtek-firmware && \
     dnf clean all
 
 # Install hardware support
@@ -198,14 +196,3 @@ RUN dnf install -y /tmp/*.rpm && \
 
 # Set cap_sys_admin on Sunshine binary for KMS capture on Wayland
 RUN setcap 'cap_sys_admin+p' $(readlink -f /usr/bin/sunshine)
-
-# Copy system configuration files and scripts
-# (done late so that rootfs/ edits don't bust the package install cache)
-COPY rootfs/ /
-COPY host-scripts/ /usr/local/bin/
-
-# Enable systemd services
-# (must run after rootfs/ is copied: reads custom preset and unit files from there)
-RUN systemctl preset-all && \
-    systemctl --global preset-all && \
-    systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target

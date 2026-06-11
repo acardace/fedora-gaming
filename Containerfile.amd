@@ -1,0 +1,22 @@
+# AMD GPU layer — built on top of the base gaming image
+ARG BASE_IMAGE=fedora-gaming:latest
+FROM ${BASE_IMAGE}
+
+LABEL quay.expires-after=12w
+
+# Install AMD-specific packages
+RUN dnf install -y \
+        amd-gpu-firmware \
+        corectrl && \
+    dnf clean all
+
+# Copy system configuration files and scripts
+# (done late so that rootfs/ edits don't bust the package install cache)
+COPY rootfs/ /
+COPY host-scripts/ /usr/local/bin/
+
+# Enable systemd services
+# (must run after rootfs/ is copied: reads custom preset and unit files from there)
+RUN systemctl preset-all && \
+    systemctl --global preset-all && \
+    systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target

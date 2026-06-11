@@ -1,4 +1,4 @@
-name: "Build Fedora Gaming bootc image"
+name: "Build Fedora Gaming bootc images"
 
 env:
   IMAGE_NAME: "fedora-gaming"
@@ -11,6 +11,8 @@ on:
       - main
     paths:
       - 'Containerfile'
+      - 'Containerfile.amd'
+      - 'Containerfile.nvidia'
       - 'rootfs/**'
       - 'host-scripts/**'
       - 'spec_files/**'
@@ -20,6 +22,8 @@ on:
       - main
     paths:
       - 'Containerfile'
+      - 'Containerfile.amd'
+      - 'Containerfile.nvidia'
       - 'rootfs/**'
       - 'host-scripts/**'
       - 'spec_files/**'
@@ -39,7 +43,42 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  build-push-image:
+  # Detect which files changed so we can skip unnecessary builds
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      base: ${{ steps.filter.outputs.base }}
+      amd: ${{ steps.filter.outputs.amd }}
+      nvidia: ${{ steps.filter.outputs.nvidia }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Detect changed paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            base:
+              - 'Containerfile'
+              - 'rootfs/**'
+              - 'host-scripts/**'
+              - 'spec_files/**'
+              - '.github/workflows/image.yml'
+            amd:
+              - 'Containerfile.amd'
+            nvidia:
+              - 'Containerfile.nvidia'
+
+  # Build the base image (GPU-agnostic)
+  # Only rebuilds when base files change, on schedule, or manual dispatch.
+  # AMD/NVIDIA-only changes reuse the existing base image from the registry.
+  build-base:
+    needs: changes
+    if: >-
+      needs.changes.outputs.base == 'true' ||
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -56,26 +95,80 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - name: Build image
+      - name: Build base image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          tags: base
+          containerfiles: Containerfile
+          layers: true
+          oci: true
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        if: github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push base image to GHCR
+        uses: redhat-actions/push-to-registry@v2
+        if: github.event_name != 'pull_request'
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          registry: ${{ env.REGISTRY }}
+          tags: base
+          extra-args: --format=oci
+
+  # Build AMD GPU image
+  build-amd:
+    needs: [changes, build-base]
+    if: >-
+      always() &&
+      needs.changes.result == 'success' &&
+      needs.build-base.result != 'failure' &&
+      (needs.changes.outputs.base == 'true' ||
+       needs.changes.outputs.amd  == 'true' ||
+       github.event_name == 'schedule' ||
+       github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
+      - name: Build AMD image
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ env.IMAGE_NAME }}
           tags: latest ${{ github.sha }}
-          containerfiles: Containerfile
+          containerfiles: Containerfile.amd
+          build-args: BASE_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:base
           layers: true
           oci: true
 
       - name: Login to Quay.io
         uses: docker/login-action@v4
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request'
         with:
           registry: quay.io
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_PASSWORD }}
 
-      - name: Push image to Quay.io
+      - name: Push AMD image to Quay.io
         uses: redhat-actions/push-to-registry@v2
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request'
         with:
           image: ${{ env.IMAGE_NAME }}
           registry: quay.io/acardace
@@ -84,17 +177,88 @@ jobs:
 
       - name: Login to GHCR
         uses: docker/login-action@v4
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request'
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push image to GHCR
+      - name: Push AMD image to GHCR
         uses: redhat-actions/push-to-registry@v2
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request'
         with:
           image: ${{ env.IMAGE_NAME }}
+          registry: ${{ env.REGISTRY }}
+          tags: latest ${{ github.sha }}
+          extra-args: --format=oci
+
+  # Build NVIDIA GPU image
+  build-nvidia:
+    needs: [changes, build-base]
+    if: >-
+      always() &&
+      needs.changes.result == 'success' &&
+      needs.build-base.result != 'failure' &&
+      (needs.changes.outputs.base   == 'true' ||
+       needs.changes.outputs.nvidia == 'true' ||
+       github.event_name == 'schedule' ||
+       github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
+      - name: Build NVIDIA image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ${{ env.IMAGE_NAME }}-nvidia
+          tags: latest ${{ github.sha }}
+          containerfiles: Containerfile.nvidia
+          build-args: BASE_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:base
+          layers: true
+          oci: true
+
+      - name: Login to Quay.io
+        uses: docker/login-action@v4
+        if: github.event_name != 'pull_request'
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_PASSWORD }}
+
+      - name: Push NVIDIA image to Quay.io
+        uses: redhat-actions/push-to-registry@v2
+        if: github.event_name != 'pull_request'
+        with:
+          image: ${{ env.IMAGE_NAME }}-nvidia
+          registry: quay.io/acardace
+          tags: latest ${{ github.sha }}
+          extra-args: --format=oci
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        if: github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push NVIDIA image to GHCR
+        uses: redhat-actions/push-to-registry@v2
+        if: github.event_name != 'pull_request'
+        with:
+          image: ${{ env.IMAGE_NAME }}-nvidia
           registry: ${{ env.REGISTRY }}
           tags: latest ${{ github.sha }}
           extra-args: --format=oci
