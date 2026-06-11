@@ -10,20 +10,9 @@ RUN dnf config-manager addrepo --from-repofile=https://negativo17.org/repos/fedo
     dnf config-manager addrepo --from-repofile=https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo && \
     dnf clean all
 
-# Install NVIDIA kernel module build dependencies and compile kmod at build time.
-# This is similar to what Bazzite does via ublue-os/akmods, but simplified:
-# we install akmod-nvidia and compile against the image's kernel right here.
-RUN KERNEL_VERSION=$(rpm -q --qf '%{VERSION}-%{RELEASE}.%{ARCH}' kernel) && \
-    dnf install -y \
-        akmod-nvidia \
-        akmods \
-        kernel-devel-matched && \
-    akmods --force --kernels "${KERNEL_VERSION}" --kmod nvidia && \
-    modinfo /usr/lib/modules/"${KERNEL_VERSION}"/extra/nvidia/nvidia{,-drm,-modeset,-peermem,-uvm}.ko* && \
-    dnf remove -y akmods kernel-devel-matched && \
-    dnf clean all
-
-# Install NVIDIA userspace driver packages (64-bit and 32-bit for Proton/Wine)
+# Install NVIDIA driver packages (userspace + kernel module builder).
+# negativo17 defaults to open kernel modules since driver 560+ (Turing/RTX 20xx+).
+# kernel-devel-matched is needed to compile the kmod at build time; removed after.
 RUN dnf install -y \
         nvidia-driver \
         nvidia-driver-libs.x86_64 \
@@ -34,7 +23,13 @@ RUN dnf install -y \
         nvidia-kmod-common \
         nvidia-settings \
         nvidia-modprobe \
-        nvidia-persistenced && \
+        nvidia-persistenced \
+        akmods \
+        kernel-devel-matched && \
+    KERNEL_VERSION=$(rpm -q --qf '%{VERSION}-%{RELEASE}.%{ARCH}' kernel) && \
+    akmods --force --kernels "${KERNEL_VERSION}" --kmod nvidia && \
+    modinfo /usr/lib/modules/"${KERNEL_VERSION}"/extra/nvidia/nvidia{,-drm,-modeset,-peermem,-uvm}.ko* && \
+    dnf remove -y akmods kernel-devel-matched && \
     dnf clean all
 
 # Install NVIDIA Wayland, VA-API, and container toolkit support
