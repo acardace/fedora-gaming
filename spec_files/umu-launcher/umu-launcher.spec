@@ -8,7 +8,7 @@
 %global rel_build 1.%{build_timestamp}%{?dist}
 
 # renovate: datasource=github-releases depName=urllib3/urllib3
-%global urllib3 2.6.3
+%global urllib3 2.7.0
 
 Name:           umu-launcher
 Version:        %{tag}
