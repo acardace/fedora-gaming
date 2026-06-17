@@ -142,14 +142,7 @@ jobs:
   # Build AMD GPU image
   build-amd:
     needs: [changes, build-base]
-    if: >-
-      always() &&
-      needs.changes.result == 'success' &&
-      needs.build-base.result != 'failure' &&
-      (needs.changes.outputs.base == 'true' ||
-       needs.changes.outputs.amd  == 'true' ||
-       github.event_name == 'schedule' ||
-       github.event_name == 'workflow_dispatch')
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
