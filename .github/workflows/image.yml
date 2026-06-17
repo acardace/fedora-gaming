@@ -158,20 +158,20 @@ jobs:
           layers: true
           oci: true
 
-      - name: Login to Quay.io
+      - name: Login to registry.canederli.org
         uses: docker/login-action@v4
         if: github.event_name != 'pull_request'
         with:
-          registry: quay.io
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_PASSWORD }}
+          registry: registry.canederli.org
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      - name: Push AMD image to Quay.io
+      - name: Push AMD image to registry.canederli.org
         uses: redhat-actions/push-to-registry@v2
         if: github.event_name != 'pull_request'
         with:
           image: ${{ env.IMAGE_NAME }}-amd
-          registry: quay.io/acardace
+          registry: registry.canederli.org
           tags: latest ${{ github.sha }}
           extra-args: --format=oci
 
@@ -229,20 +229,20 @@ jobs:
           layers: true
           oci: true
 
-      - name: Login to Quay.io
+      - name: Login to registry.canederli.org
         uses: docker/login-action@v4
         if: github.event_name != 'pull_request'
         with:
-          registry: quay.io
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_PASSWORD }}
+          registry: registry.canederli.org
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      - name: Push NVIDIA image to Quay.io
+      - name: Push NVIDIA image to registry.canederli.org
         uses: redhat-actions/push-to-registry@v2
         if: github.event_name != 'pull_request'
         with:
           image: ${{ env.IMAGE_NAME }}-nvidia
-          registry: quay.io/acardace
+          registry: registry.canederli.org
           tags: latest ${{ github.sha }}
           extra-args: --format=oci
 
