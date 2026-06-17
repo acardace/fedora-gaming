@@ -3,6 +3,7 @@ name: "Build Fedora Gaming bootc images"
 env:
   IMAGE_NAME: "fedora-gaming"
   REGISTRY: "ghcr.io/${{ github.repository_owner }}"
+  PRIVATE_REGISTRY: "registry.canederli.org"
 
 on:
   workflow_dispatch:
@@ -121,6 +122,23 @@ jobs:
           tags: base
           extra-args: --format=oci
 
+      - name: Login to registry.canederli.org
+        uses: docker/login-action@v4
+        if: github.event_name != 'pull_request'
+        with:
+          registry: registry.canederli.org
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Push base image to registry.canederli.org
+        uses: redhat-actions/push-to-registry@v2
+        if: github.event_name != 'pull_request'
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          registry: registry.canederli.org
+          tags: base
+          extra-args: --format=oci
+
   # Build AMD GPU image
   build-amd:
     needs: [changes, build-base]
@@ -148,16 +166,6 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - name: Build AMD image
-        uses: redhat-actions/buildah-build@v2
-        with:
-          image: ${{ env.IMAGE_NAME }}-amd
-          tags: latest ${{ github.sha }}
-          containerfiles: Containerfile.amd
-          build-args: BASE_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:base
-          layers: true
-          oci: true
-
       - name: Login to registry.canederli.org
         uses: docker/login-action@v4
         if: github.event_name != 'pull_request'
@@ -165,6 +173,16 @@ jobs:
           registry: registry.canederli.org
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build AMD image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ${{ env.IMAGE_NAME }}-amd
+          tags: latest ${{ github.sha }}
+          containerfiles: Containerfile.amd
+          build-args: BASE_IMAGE=${{ env.PRIVATE_REGISTRY }}/${{ env.IMAGE_NAME }}:base
+          layers: true
+          oci: true
 
       - name: Push AMD image to registry.canederli.org
         uses: redhat-actions/push-to-registry@v2
@@ -219,16 +237,6 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - name: Build NVIDIA image
-        uses: redhat-actions/buildah-build@v2
-        with:
-          image: ${{ env.IMAGE_NAME }}-nvidia
-          tags: latest ${{ github.sha }}
-          containerfiles: Containerfile.nvidia
-          build-args: BASE_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:base
-          layers: true
-          oci: true
-
       - name: Login to registry.canederli.org
         uses: docker/login-action@v4
         if: github.event_name != 'pull_request'
@@ -236,6 +244,16 @@ jobs:
           registry: registry.canederli.org
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build NVIDIA image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ${{ env.IMAGE_NAME }}-nvidia
+          tags: latest ${{ github.sha }}
+          containerfiles: Containerfile.nvidia
+          build-args: BASE_IMAGE=${{ env.PRIVATE_REGISTRY }}/${{ env.IMAGE_NAME }}:base
+          layers: true
+          oci: true
 
       - name: Push NVIDIA image to registry.canederli.org
         uses: redhat-actions/push-to-registry@v2
