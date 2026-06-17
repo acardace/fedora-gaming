@@ -171,6 +171,7 @@ RUN dnf install -y \
         virt-manager \
         fzf ripgrep bat xdg-terminal-exec hostapd dnsmasq stow \
         duf lshw \
+        powertop \
         p7zip p7zip-plugins rar lzip \
         python3-icoextract && \
     dnf clean all
@@ -192,6 +193,12 @@ RUN dnf install -y \
 RUN dnf install -y /tmp/*.rpm && \
     rm -f /tmp/*.rpm && \
     dnf remove -y plymouth ModemManager cups plasma-discover-packagekit && \
+    dnf clean all
+
+# Add NetBird repository
+COPY rootfs/etc/yum.repos.d/netbird.repo /etc/yum.repos.d/netbird.repo
+
+RUN dnf install -y --setopt=tsflags=noscripts netbird netbird-ui && \
     dnf clean all
 
 # Set cap_sys_admin on Sunshine binary for KMS capture on Wayland
