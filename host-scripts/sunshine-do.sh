@@ -83,12 +83,11 @@ else
 fi
 kscreen-doctor "output.${VIRTUAL_OUTPUT}.scale.${scale}"
 
-# Set HDR based on client capability
-if [ "$SUNSHINE_CLIENT_HDR" = "true" ]; then
-  kscreen-doctor "output.${VIRTUAL_OUTPUT}.hdr.enable"
-else
-  kscreen-doctor "output.${VIRTUAL_OUTPUT}.hdr.disable"
-fi
+# HDR is not supported on NVIDIA virtual connectors — the driver only creates
+# the required DRM HDR_OUTPUT_METADATA property on real physical HDMI 2.1
+# connections with SCDC negotiation. Enabling HDR on the virtual output causes
+# the cursor plane to lose its framebuffer, breaking Sunshine KMS capture.
+kscreen-doctor "output.${VIRTUAL_OUTPUT}.hdr.disable"
 
 # Inhibit DPMS/screensaver on the virtual display -- turning it off is
 # useless and prevents Sunshine from finding a KMS monitor after the
