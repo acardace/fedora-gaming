@@ -72,6 +72,19 @@ RUN mkdir -p /usr/lib/modprobe.d && \
     printf 'options nvidia-drm modeset=1 fbdev=1\n' \
         > /usr/lib/modprobe.d/nvidia-modeset.conf
 
+# Workaround for kernel 7.0 composefs/overlay SELinux denials:
+# composefs backing-file mmap checks cause userspace mappings to be evaluated
+# as kernel_t, breaking execmem for games/Wine/Proton on NVIDIA.
+# Tracking: https://github.com/ublue-os/akmods/issues/537
+COPY rootfs/usr/share/selinux/packages/composefs_execmem.te /tmp/composefs_execmem.te
+RUN dnf install -y selinux-policy-devel && \
+    checkmodule -M -m -o /tmp/composefs_execmem.mod /tmp/composefs_execmem.te && \
+    semodule_package -o /tmp/composefs_execmem.pp -m /tmp/composefs_execmem.mod && \
+    semodule -X 300 -i /tmp/composefs_execmem.pp && \
+    rm -f /tmp/composefs_execmem.{te,mod,pp} && \
+    dnf remove -y selinux-policy-devel && \
+    dnf clean all
+
 # Copy system configuration files and scripts
 # (done late so that rootfs/ edits don't bust the package install cache)
 COPY rootfs/ /
