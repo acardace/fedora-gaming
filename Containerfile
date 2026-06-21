@@ -171,7 +171,7 @@ RUN dnf install -y \
         virt-manager \
         fzf ripgrep bat xdg-terminal-exec hostapd dnsmasq stow \
         duf lshw \
-        powertop \
+        powertop krfb \
         p7zip p7zip-plugins rar lzip \
         python3-icoextract && \
     dnf clean all
