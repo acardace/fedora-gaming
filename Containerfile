@@ -128,6 +128,16 @@ RUN dnf install -y \
         wivrn && \
     dnf clean all
 
+# renovate: datasource=github-releases depName=Supreeeme/xrizer
+ARG XRIZER_VERSION=0.5
+
+# Install xrizer (OpenVR driver for OpenXR)
+RUN mkdir -p /opt/xrizer && \
+    curl -Lo /tmp/xrizer.zip \
+        https://github.com/Supreeeme/xrizer/releases/download/v${XRIZER_VERSION}/xrizer-v${XRIZER_VERSION}.zip && \
+    unzip /tmp/xrizer.zip -d /opt/xrizer && \
+    rm -f /tmp/xrizer.zip
+
 # Install audio/video essentials + multimedia codecs
 RUN dnf install -y \
         pipewire wireplumber pipewire-alsa pipewire-pulseaudio \

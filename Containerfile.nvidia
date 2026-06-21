@@ -72,6 +72,34 @@ RUN mkdir -p /usr/lib/modprobe.d && \
     printf 'options nvidia-drm modeset=1 fbdev=1\n' \
         > /usr/lib/modprobe.d/nvidia-modeset.conf
 
+# Prevent CUDA from forcing P2 state instead of P0 for apps that use NVENC.
+# Without this, WiVRn, Sunshine, OBS, etc. keep the GPU in P2 under load.
+# See: https://github.com/WiVRn/WiVRn/blob/master/docs/nvenc.md
+#      https://github.com/NVIDIA/open-gpu-kernel-modules/issues/333
+RUN mkdir -p /etc/nvidia/nvidia-application-profiles-rc.d && \
+    printf '%s\n' \
+        '{' \
+        '    "rules": [' \
+        '        { "pattern": "wivrn-server",          "profile": "CudaNoStablePerfLimit" },' \
+        '        { "pattern": "sunshine",              "profile": "CudaNoStablePerfLimit" },' \
+        '        { "pattern": "obs",                   "profile": "CudaNoStablePerfLimit" },' \
+        '        { "pattern": "gpu-screen-recorder",   "profile": "CudaNoStablePerfLimit" },' \
+        '        { "pattern": "spectacle",             "profile": "CudaNoStablePerfLimit" },' \
+        '        { "pattern": "Discord",               "profile": "CudaNoStablePerfLimit" },' \
+        '        { "pattern": "discord",               "profile": "CudaNoStablePerfLimit" },' \
+        '        { "pattern": "vesktop",               "profile": "CudaNoStablePerfLimit" }' \
+        '    ],' \
+        '    "profiles": [' \
+        '        {' \
+        '            "name": "CudaNoStablePerfLimit",' \
+        '            "settings": [' \
+        '                { "key": "0x166c5e", "value": 0 }' \
+        '            ]' \
+        '        }' \
+        '    ]' \
+        '}' \
+        > /etc/nvidia/nvidia-application-profiles-rc.d/cuda-no-stable-perf-limit
+
 # Workaround for kernel 7.0 composefs/overlay SELinux denials:
 # composefs backing-file mmap checks cause userspace mappings to be evaluated
 # as kernel_t, breaking execmem for games/Wine/Proton on NVIDIA.
