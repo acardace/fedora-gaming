@@ -132,11 +132,12 @@ RUN dnf install -y \
 ARG XRIZER_VERSION=0.5
 
 # Install xrizer (OpenVR driver for OpenXR)
-RUN mkdir -p /opt/xrizer && \
-    curl -Lo /tmp/xrizer.zip \
+RUN curl -Lo /tmp/xrizer.zip \
         https://github.com/Supreeeme/xrizer/releases/download/v${XRIZER_VERSION}/xrizer-v${XRIZER_VERSION}.zip && \
-    unzip /tmp/xrizer.zip -d /opt/xrizer && \
-    rm -f /tmp/xrizer.zip
+    unzip /tmp/xrizer.zip -d /tmp/xrizer-src && \
+    mkdir -p /opt/xrizer && \
+    mv /tmp/xrizer-src/xrizer-v${XRIZER_VERSION}/* /opt/xrizer/ && \
+    rm -rf /tmp/xrizer.zip /tmp/xrizer-src
 
 # Install audio/video essentials + multimedia codecs
 RUN dnf install -y \
