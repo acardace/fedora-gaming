@@ -1,31 +1,33 @@
 #!/bin/bash
 set -euo pipefail
 
-IMAGE_NAME="${IMAGE_NAME:-ghcr.io/acardace/fedora-gaming}"
-BUILD_MINIMAL="${BUILD_MINIMAL:-true}"
-BUILD_LATEST="${BUILD_LATEST:-true}"
+REGISTRY="${REGISTRY:-registry.canederli.org}"
+IMAGE_NAME="${IMAGE_NAME:-fedora-gaming}"
+BUILD_BASE="${BUILD_BASE:-true}"
+BUILD_NVIDIA="${BUILD_NVIDIA:-true}"
 
-# Build minimal image
-if [[ "${BUILD_MINIMAL}" == "true" ]]; then
-    echo "Building minimal image: ${IMAGE_NAME}:minimal"
-    podman build \
-        -f Containerfile.minimal \
-        -t "${IMAGE_NAME}:minimal" \
-        .
-    echo "✓ Minimal image built successfully: ${IMAGE_NAME}:minimal"
-    podman push "${IMAGE_NAME}:minimal"
-fi
-
-# Build full image based on minimal
-if [[ "${BUILD_LATEST}" == "true" ]]; then
-    echo "Building full image: ${IMAGE_NAME}:latest"
+# Build base image (GPU-agnostic)
+if [[ "${BUILD_BASE}" == "true" ]]; then
+    echo "Building base image: ${REGISTRY}/${IMAGE_NAME}:base"
     podman build \
         -f Containerfile \
-        -t "${IMAGE_NAME}:latest" \
+        -t "${REGISTRY}/${IMAGE_NAME}:base" \
         .
-    echo "✓ Full image built successfully: ${IMAGE_NAME}:latest"
+    echo "✓ Base image built successfully: ${REGISTRY}/${IMAGE_NAME}:base"
+fi
+
+# Build NVIDIA image on top of the base
+if [[ "${BUILD_NVIDIA}" == "true" ]]; then
+    echo "Building nvidia image: ${REGISTRY}/${IMAGE_NAME}-nvidia:latest"
+    podman build \
+        -f Containerfile.nvidia \
+        --build-arg BASE_IMAGE="${REGISTRY}/${IMAGE_NAME}:base" \
+        -t "${REGISTRY}/${IMAGE_NAME}-nvidia:latest" \
+        .
+    echo "✓ Nvidia image built successfully: ${REGISTRY}/${IMAGE_NAME}-nvidia:latest"
 fi
 
 echo ""
 echo "Images built:"
-podman images "${IMAGE_NAME}"
+podman images "${REGISTRY}/${IMAGE_NAME}"
+podman images "${REGISTRY}/${IMAGE_NAME}-nvidia"
