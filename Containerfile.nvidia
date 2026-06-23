@@ -121,5 +121,4 @@ COPY host-scripts/ /usr/local/bin/
 # Enable systemd services
 # (must run after rootfs/ is copied: reads custom preset and unit files from there)
 RUN systemctl preset-all && \
-    systemctl --global preset-all && \
-    systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
+    systemctl --global preset-all
