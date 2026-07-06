@@ -47,6 +47,7 @@ RUN dnf install -y 'dnf5-command(copr)' && \
     dnf config-manager addrepo --from-repofile=https://negativo17.org/repos/fedora-steam.repo && \
     dnf config-manager addrepo --from-repofile=https://negativo17.org/repos/fedora-multimedia.repo && \
     dnf config-manager addrepo --from-repofile=https://negativo17.org/repos/fedora-rar.repo && \
+    dnf config-manager addrepo --from-repofile=https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo && \
     dnf install -y --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' \
         terra-release terra-release-extras terra-release-mesa && \
     dnf copr enable -y kylegospo/LatencyFleX && \
@@ -178,7 +179,7 @@ RUN dnf install -y \
         NetworkManager-wifi NetworkManager-bluetooth \
         bluez blueman fastfetch \
         glibc-langpack-en curl wget distrobox podman \
-        firefox chromium \
+        firefox chromium brave-browser \
         virt-manager \
         fzf ripgrep bat xdg-terminal-exec hostapd dnsmasq stow \
         duf lshw \
