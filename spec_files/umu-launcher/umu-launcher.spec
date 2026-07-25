@@ -1,7 +1,7 @@
 %undefine source_date_epoch_from_changelog
 
 # renovate: datasource=github-releases depName=Open-Wine-Components/umu-launcher
-%global tag 1.4.0
+%global tag 1.4.4
 
 %global build_timestamp %(date +"%Y%m%d")
 
