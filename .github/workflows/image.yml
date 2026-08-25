@@ -167,13 +167,23 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
+      - name: Build base image locally (for PR builds)
+        uses: redhat-actions/buildah-build@v2
+        if: github.event_name == 'pull_request' && needs.build-base.result == 'skipped'
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          tags: base
+          containerfiles: Containerfile
+          layers: true
+          oci: true
+
       - name: Build AMD image
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ env.IMAGE_NAME }}-amd
           tags: latest ${{ github.sha }}
           containerfiles: Containerfile.amd
-          build-args: BASE_IMAGE=${{ env.PRIVATE_REGISTRY }}/${{ env.IMAGE_NAME }}:base
+          build-args: BASE_IMAGE=${{ github.event_name == 'pull_request' && format('localhost/{0}:base', env.IMAGE_NAME) || format('{0}/{1}:base', env.PRIVATE_REGISTRY, env.IMAGE_NAME) }}
           layers: true
           oci: true
 
@@ -238,13 +248,23 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
+      - name: Build base image locally (for PR builds)
+        uses: redhat-actions/buildah-build@v2
+        if: github.event_name == 'pull_request' && needs.build-base.result == 'skipped'
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          tags: base
+          containerfiles: Containerfile
+          layers: true
+          oci: true
+
       - name: Build NVIDIA image
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ env.IMAGE_NAME }}-nvidia
           tags: latest ${{ github.sha }}
           containerfiles: Containerfile.nvidia
-          build-args: BASE_IMAGE=${{ env.PRIVATE_REGISTRY }}/${{ env.IMAGE_NAME }}:base
+          build-args: BASE_IMAGE=${{ github.event_name == 'pull_request' && format('localhost/{0}:base', env.IMAGE_NAME) || format('{0}/{1}:base', env.PRIVATE_REGISTRY, env.IMAGE_NAME) }}
           layers: true
           oci: true
 

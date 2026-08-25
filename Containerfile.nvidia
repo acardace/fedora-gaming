@@ -38,6 +38,8 @@ RUN dnf install -y \
 RUN dnf install -y \
         egl-wayland.x86_64 \
         egl-wayland.i686 \
+        egl-wayland2.x86_64 \
+        egl-wayland2.i686 \
         libva-nvidia-driver \
         penguin-burner \
         nvidia-container-toolkit && \
@@ -108,7 +110,7 @@ COPY rootfs/usr/share/selinux/packages/composefs_execmem.te /tmp/composefs_execm
 RUN dnf install -y selinux-policy-devel && \
     checkmodule -M -m -o /tmp/composefs_execmem.mod /tmp/composefs_execmem.te && \
     semodule_package -o /tmp/composefs_execmem.pp -m /tmp/composefs_execmem.mod && \
-    semodule -X 300 -i /tmp/composefs_execmem.pp && \
+    (semodule -X 300 -i /tmp/composefs_execmem.pp || (rm -rf /etc/selinux/targeted/tmp && semodule -X 300 -i /tmp/composefs_execmem.pp)) && \
     rm -f /tmp/composefs_execmem.{te,mod,pp} && \
     dnf remove -y selinux-policy-devel && \
     dnf clean all
