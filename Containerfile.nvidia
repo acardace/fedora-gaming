@@ -65,14 +65,20 @@ RUN ln -sf libnvidia-ml.so.1 /usr/lib64/libnvidia-ml.so
 
 # Configure dracut to force-load NVIDIA modules early in initramfs
 # This prevents black screen on boot and ensures KMS is active from the start.
+# Also omit AMD/Nouveau drivers to prevent conflicts.
 RUN mkdir -p /usr/lib/dracut/dracut.conf.d && \
     printf 'force_drivers+=" nvidia nvidia-drm nvidia-modeset nvidia-uvm "\n' \
-        > /usr/lib/dracut/dracut.conf.d/99-nvidia.conf
+        > /usr/lib/dracut/dracut.conf.d/99-nvidia.conf && \
+    printf 'omit_drivers+=" amdgpu radeon nouveau "\n' \
+        > /usr/lib/dracut/dracut.conf.d/blacklist-other-gpu.conf
 
 # Enable nvidia-drm modeset for KMS (required for Wayland and Sunshine KMS capture)
+# Also blacklist AMD/Nouveau drivers to prevent module loading conflicts
 RUN mkdir -p /usr/lib/modprobe.d && \
     printf 'options nvidia-drm modeset=1 fbdev=1\n' \
-        > /usr/lib/modprobe.d/nvidia-modeset.conf
+        > /usr/lib/modprobe.d/nvidia-modeset.conf && \
+    printf '# Blacklist AMD GPU drivers on NVIDIA-only systems\nblacklist amdgpu\nblacklist radeon\n# Blacklist Nouveau\nblacklist nouveau\n' \
+        > /usr/lib/modprobe.d/blacklist-other-gpu.conf
 
 # Prevent CUDA from forcing P2 state instead of P0 for apps that use NVENC.
 # Without this, WiVRn, Sunshine, OBS, etc. keep the GPU in P2 under load.
