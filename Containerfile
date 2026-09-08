@@ -179,7 +179,7 @@ RUN dnf install -y \
         NetworkManager-wifi NetworkManager-bluetooth \
         bluez blueman fastfetch \
         glibc-langpack-en curl wget distrobox podman \
-        firefox chromium brave-browser \
+        firefox chromium brave-browser ramalama \
         virt-manager \
         fzf ripgrep bat xdg-terminal-exec hostapd dnsmasq stow \
         duf lshw \
