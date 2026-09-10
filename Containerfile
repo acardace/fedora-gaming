@@ -216,6 +216,13 @@ RUN dnf install -y --setopt=tsflags=noscripts netbird netbird-ui && \
 # Set cap_sys_admin on Sunshine binary for KMS capture on Wayland
 RUN setcap 'cap_sys_admin+p' $(readlink -f /usr/bin/sunshine)
 
+COPY rootfs/etc/yum.repos.d/polaris.repo /etc/yum.repos.d/polaris.repo
+
+RUN rpm --import https://repo.papi-ux.com/polaris.gpg && \
+    dnf install -y polaris && \
+    polaris --setup-host && \
+    dnf clean all
+
 # Install simracing hwdb entries (joystick detection fixes for sim racing peripherals)
 RUN git clone --depth=1 https://github.com/JacKeTUs/simracing-hwdb /tmp/simracing-hwdb && \
     make -C /tmp/simracing-hwdb install && \

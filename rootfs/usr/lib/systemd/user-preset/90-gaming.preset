@@ -1,3 +1,5 @@
-enable app-dev.lizardbyte.app.Sunshine.service
+disable app-dev.lizardbyte.app.Sunshine.service
+disable sunshine.service
+enable polaris.service
 enable podman.socket
 enable ludusavi-backup.timer
