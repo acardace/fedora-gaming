@@ -1,0 +1,7 @@
+[gitea-unom-punktfunk]
+name=punktfunk (unom)
+baseurl=https://git.unom.io/api/packages/unom/rpm/fedora-44
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://git.unom.io/api/packages/unom/rpm/repository.key https://git.unom.io/api/packages/unom/generic/punktfunk-keys/1/RPM-GPG-KEY-punktfunk

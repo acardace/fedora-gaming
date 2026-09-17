@@ -223,6 +223,20 @@ RUN rpm --import https://repo.papi-ux.com/polaris.gpg && \
     polaris --setup-host && \
     dnf clean all
 
+# Install Punktfunk (low-latency desktop/game streaming host) from the unom Gitea RPM
+# registry. The `fedora-44` group matches this image's base; the registry (not COPR) is
+# used because it carries the punktfunk-web console subpackage. It coexists with Polaris:
+# the native-only host (the default) shares only the management-API port (TCP 47990,
+# Polaris's web UI) with it, and that is moved to 47991 in
+# rootfs/etc/skel/.config/punktfunk/host.env. GameStream/Moonlight compat stays OFF
+# (PUNKTFUNK_GAMESTREAM=0) so Punktfunk does not also bind Polaris's GameStream ports or
+# its mDNS name. punktfunk-web and punktfunk-scripting are Recommends, so name them
+# explicitly. The user units are enabled via the user-preset (90-gaming.preset).
+COPY rootfs/etc/yum.repos.d/punktfunk.repo /etc/yum.repos.d/punktfunk.repo
+
+RUN dnf install -y punktfunk punktfunk-web punktfunk-scripting && \
+    dnf clean all
+
 # Install simracing hwdb entries (joystick detection fixes for sim racing peripherals)
 RUN git clone --depth=1 https://github.com/JacKeTUs/simracing-hwdb /tmp/simracing-hwdb && \
     make -C /tmp/simracing-hwdb install && \
