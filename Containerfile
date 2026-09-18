@@ -234,7 +234,7 @@ RUN rpm --import https://repo.papi-ux.com/polaris.gpg && \
 # explicitly. The user units are enabled via the user-preset (90-gaming.preset).
 COPY rootfs/etc/yum.repos.d/punktfunk.repo /etc/yum.repos.d/punktfunk.repo
 
-RUN dnf install -y punktfunk punktfunk-web punktfunk-scripting && \
+RUN dnf install -y punktfunk punktfunk-web punktfunk-scripting punktfunk-gamescope && \
     dnf clean all
 
 # Install simracing hwdb entries (joystick detection fixes for sim racing peripherals)
