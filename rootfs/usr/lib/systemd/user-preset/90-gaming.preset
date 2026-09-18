@@ -1,8 +1,6 @@
 disable app-dev.lizardbyte.app.Sunshine.service
 disable sunshine.service
-enable polaris.service
-# Punktfunk streaming host (coexists with Polaris; mgmt port moved to 47991, see
-# /etc/skel/.config/punktfunk/host.env). Host + web console + game-library runner.
+disable polaris.service
 enable punktfunk-host.service
 enable punktfunk-web.service
 enable punktfunk-scripting.service
