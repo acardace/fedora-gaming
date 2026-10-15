@@ -189,7 +189,7 @@ RUN dnf install -y \
     dnf clean all
 
 # renovate: datasource=github-releases depName=Heroic-Games-Launcher/HeroicGamesLauncher
-ARG HEROIC_VERSION=2.22.3
+ARG HEROIC_VERSION=2.22.4
 
 # Install Heroic Games Launcher
 RUN dnf install -y \
